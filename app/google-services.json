@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "596579648100",
+    "firebase_url": "https://desk-management-tool.firebaseio.com",
+    "project_id": "desk-management-tool",
+    "storage_bucket": "desk-management-tool.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:596579648100:android:906cfc0375991aa9",
+        "android_client_info": {
+          "package_name": "com.unagit.deskmanagementtool"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "596579648100-vsab215j9rcliggf7m0rvfl510v3090e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1L7CNcqQS4qJLmaSROBj54lckfLZTxLo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
