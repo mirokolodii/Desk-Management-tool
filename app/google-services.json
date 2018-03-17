@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "596579648100-mrephvq3ojljtpupign280o51nvs0deg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.unagit.deskmanagementtool",
+            "certificate_hash": "70d438ad7391c614140ae27aa90690adcea5f556"
+          }
+        },
+        {
           "client_id": "596579648100-jam200rln4qduik1p44dpt1l2pmbv8ui.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
