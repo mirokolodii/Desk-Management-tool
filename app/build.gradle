@@ -29,6 +29,9 @@ dependencies {
     // Firebase Authentication
     implementation 'com.google.firebase:firebase-auth:11.8.0'
 
+    // Google Sign In SDK (only required for Google Sign In)
+    compile 'com.google.android.gms:play-services-auth:11.8.0'
+
     // Firebase Database
     implementation 'com.google.firebase:firebase-database:11.8.0'
 
@@ -36,6 +39,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
+
 
 
 apply plugin: 'com.google.gms.google-services'

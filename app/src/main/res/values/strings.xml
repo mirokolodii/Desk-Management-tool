@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Desk Management tool</string>
+    <string name="sign_in_label">Sign In with Google account</string>
 </resources>
