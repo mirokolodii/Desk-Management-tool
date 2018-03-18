@@ -38,6 +38,11 @@ public class MainActivity extends AppCompatActivity {
     // Instance of FirebaseAuth for Firebase Authentication
     private FirebaseAuth mAuth;
 
+    /**
+     * Firebase authentication state change listener.
+     */
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +64,17 @@ public class MainActivity extends AppCompatActivity {
                 launchSignInActivity();
             }
         });
+
+        // Initialize auth state change listener.
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if(user == null) {
+                    launchSignInActivity();
+                }
+            }
+        };
     }
 
     // Add menu into activity
@@ -97,6 +113,19 @@ public class MainActivity extends AppCompatActivity {
 //        launchSignInActivity();
         updateUI(currentUser);
 
+        // Add auth change listener.
+        mAuth.addAuthStateListener(mAuthStateListener);
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // Remove auth change listener.
+        if(mAuthStateListener != null) {
+            mAuth.removeAuthStateListener(mAuthStateListener);
+        }
     }
 
     private void updateUI(FirebaseUser currentUser) {
