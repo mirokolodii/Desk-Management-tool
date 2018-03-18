@@ -61,6 +61,7 @@ public class SignInActivity extends AppCompatActivity {
         // Sign In button.
         SignInButton signInButton = findViewById(R.id.google_sign_in_button);
         signInButton.setOnClickListener(onGoogleSignInButtonClick());
+        signInButton.setSize(SignInButton.SIZE_WIDE);
 
     }
 
@@ -87,7 +88,6 @@ public class SignInActivity extends AppCompatActivity {
      */
     private void launchMainActivity() {
         Intent mainActivityIntent = new Intent(this, MainActivity.class);
-        // TODO: pass user object into new activity
         startActivity(mainActivityIntent);
         finish();
     }
@@ -104,6 +104,13 @@ public class SignInActivity extends AppCompatActivity {
             }
         };
     }
+
+    /**
+     * Google Sign In results are received here.
+     * @param requestCode Code of a request.
+     * @param resultCode Result code.
+     * @param data From data we get information about GoogleSignInAccount
+     */
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
