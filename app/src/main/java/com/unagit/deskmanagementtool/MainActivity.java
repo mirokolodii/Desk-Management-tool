@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser currentUser) {
         String message = (currentUser == null ? "FirebaseUser is null" : currentUser.getEmail());
-        Toast.makeText(this, "message", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
 
