@@ -25,6 +25,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.squareup.picasso.Picasso;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.activities.SignInActivity;
 
@@ -71,6 +72,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+
+        // Buttons
+        findViewById(R.id.manage_absences_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                launchAbsencesActivity();
+            }
+        });
     }
 
     // Add menu into activity
@@ -146,7 +155,9 @@ public class MainActivity extends AppCompatActivity {
         );
 
         // Set photo
-
+        if(photoUrl != null) {
+            Picasso.get().load(photoUrl).into((ImageView) findViewById(R.id.user_photo));
+        }
     }
 
     private void updateUI(FirebaseUser currentUser) {
@@ -162,6 +173,11 @@ public class MainActivity extends AppCompatActivity {
         Intent signInActivityIntent = new Intent(this, SignInActivity.class);
         startActivity(signInActivityIntent);
         finish();
+    }
+
+    private void launchAbsencesActivity() {
+        Intent signInActivityIntent = new Intent(this, AbsencesActivity.class);
+        startActivity(signInActivityIntent);
     }
 
     private void signOut() {
