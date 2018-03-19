@@ -35,6 +35,12 @@ dependencies {
     // Picasso library
     implementation 'com.squareup.picasso:picasso:2.71828'
 
+    /*
+    Picasso Transformations library
+    https://github.com/wasabeef/picasso-transformations
+     */
+    implementation 'jp.wasabeef:picasso-transformations:2.2.1'
+
     // Firebase Database
     implementation 'com.google.firebase:firebase-database:11.8.0'
 

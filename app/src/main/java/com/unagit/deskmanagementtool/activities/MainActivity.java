@@ -1,6 +1,7 @@
 package com.unagit.deskmanagementtool.activities;
 
 import android.content.Intent;
+import android.graphics.drawable.LayerDrawable;
 import android.media.Image;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -28,6 +29,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.activities.SignInActivity;
+
+import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 
 //import com.google.android.gms.tasks.OnCompleteListener;
 //import com.google.android.gms.tasks.Task;
@@ -156,7 +159,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Set photo
         if(photoUrl != null) {
-            Picasso.get().load(photoUrl).into((ImageView) findViewById(R.id.user_photo));
+            Picasso.get().load(photoUrl)
+                    .transform(new CropCircleTransformation())
+                    .into((ImageView) findViewById(R.id.user_photo));
         }
     }
 
