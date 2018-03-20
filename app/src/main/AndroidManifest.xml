@@ -21,10 +21,12 @@
             android:label="@string/sign_in_label" />
         <activity
             android:name=".activities.AbsencesActivity"
-            android:label="@string/title_activity_add_absence"
+
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".activities.AddAbsenceActivity">
+        <activity android:name=".activities.AddAbsenceActivity"
+            android:label="@string/title_activity_add_absence">
+
             <intent-filter>
             <action android:name="android.intent.action.MAIN" />
 

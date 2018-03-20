@@ -7,10 +7,19 @@ import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -32,6 +41,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     android.support.v4.app.DialogFragment fragment;
     private static Date startDate;
     private static Date endDate;
+    final ArrayList<AbsenceType> absenceTypes = new ArrayList<>();
 
     // Firebase
     FirebaseFirestore db;
@@ -60,10 +70,38 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         initializeDatePickers();
     }
 
-    private void updateAbsenceTypesSpinner() {
-        final ArrayList<AbsenceType> absenceTypes = new ArrayList<>();
+    // Add menu into activity
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_add_absence_menu, menu);
+        return true;
+    }
 
-        // Get items from db.
+    // Handle menu items onClick events.
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.save_menu_button:
+                saveAbsence();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void saveAbsence() {
+
+    }
+
+    /**
+     * Gets absence types from db and populates spinner with received data.
+     */
+    private void updateAbsenceTypesSpinner() {
+
+
+        // Get items from db and put into array.
         db.collection("absence_types")
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
@@ -78,12 +116,16 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
                 for(AbsenceType type : absenceTypes) {
                     Log.d("AddAbsenceActivity", "absenceTypes: " + type.getName() + ": " + type.isRequiredApproval() + "\n");
                 }
+
+                Spinner spinner = findViewById(R.id.absence_type_spinner);
+                AbsenceSpinnerAdapter adapter = new AbsenceSpinnerAdapter();
+                spinner.setAdapter(adapter);
+//                spinner.getSelectedItem();
             }
         });
 
 
 
-        Spinner spinner = findViewById(R.id.absence_type_spinner);
 
         //
     }
@@ -104,6 +146,11 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         ((EditText) findViewById(R.id.end_date_editText)).setOnClickListener(getDateOnClickListener(END_DATE_TAG));
     }
 
+    /**
+     * Creates a new DatePickerFragment.
+     * @param tag representing source view, from which listener has been triggered.
+     * @return OnClickListener.
+     */
     private View.OnClickListener getDateOnClickListener(final String tag) {
         return new View.OnClickListener() {
             @Override
@@ -231,6 +278,35 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
             // Default value, shouldn't occur.
             return new Date();
+        }
+    }
+
+    private class AbsenceSpinnerAdapter extends BaseAdapter implements SpinnerAdapter {
+
+        @Override
+        public int getCount() {
+            return absenceTypes.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+//            return null;
+            return absenceTypes.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+
+            View listView = LayoutInflater.from(viewGroup.getContext())
+                    .inflate(R.layout.support_simple_spinner_dropdown_item, viewGroup, false);
+            TextView textView = listView.findViewById(android.R.id.text1);
+            textView.setText(absenceTypes.get(i).getName());
+            return listView;
         }
     }
 }
