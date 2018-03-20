@@ -2,21 +2,25 @@ package com.unagit.deskmanagementtool.activities;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.Spinner;
 
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.unagit.deskmanagementtool.R;
+import com.unagit.deskmanagementtool.brain.AbsenceType;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -42,7 +46,12 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_absence);
 
+        // Create instance of database.
         db = FirebaseFirestore.getInstance();
+
+        updateAbsenceTypesSpinner();
+
+
     }
 
     @Override
@@ -51,13 +60,40 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         initializeDatePickers();
     }
 
+    private void updateAbsenceTypesSpinner() {
+        final ArrayList<AbsenceType> absenceTypes = new ArrayList<>();
+
+        // Get items from db.
+        db.collection("absence_types")
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot documentSnapshots) {
+                for(DocumentSnapshot document : documentSnapshots) {
+                    Log.d("AddAbsenceActivity", document.getData().toString());
+                    AbsenceType absenceType = document.toObject(AbsenceType.class);
+                    absenceTypes.add(absenceType);
+                }
+
+//                Log.d("AddAbsenceActivity", "absenceTypes: " + absenceTypes.toString());
+                for(AbsenceType type : absenceTypes) {
+                    Log.d("AddAbsenceActivity", "absenceTypes: " + type.getName() + ": " + type.isRequiredApproval() + "\n");
+                }
+            }
+        });
+
+
+
+        Spinner spinner = findViewById(R.id.absence_type_spinner);
+
+        //
+    }
+
     /**
      * Puts current date into both date picker EditTexts.
      * Sets onClick listeners.
-     * Saves Dates from these EditTexts into instance variables, so that they can be access
-     * with other methods.
-      */
-
+     * Saves Dates from these EditTexts into instance variables, so that they can be accessed
+     * by other methods.
+     */
     private void initializeDatePickers() {
         // Add current date to both pickers.
         setDateInEditText(DateEditText.startDateEditText, new Date());
@@ -78,7 +114,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         };
     }
 
-    // From DatePickerDialog.OnDateSetListener interface.
+    // Implementation of DatePickerDialog.OnDateSetListener interface.
     @Override
     public void onDateSet(DatePicker datePicker, int year, int month, int day) {
         Date datePickerDate = getDateFromDatePicker(datePicker);
@@ -93,6 +129,10 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         updateUI();
     }
 
+    /**
+     * Compares startDate and endDate Dates.
+     * @return true, if endDate is grater than startDate, otherwise return false.
+     */
     private boolean areCorrectDates() {
         return (
                 startDate != null
@@ -138,7 +178,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     }
 
     /**
-     * Alert with red color in startEditText, in case when end date is earlier than start date.
+     * Alerts user with red color in startEditText, in case when end date is earlier than start date.
      */
     private void updateUI() {
         int color;
