@@ -12,6 +12,8 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.unagit.deskmanagementtool.R;
 
 import java.text.SimpleDateFormat;
@@ -23,10 +25,12 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
     private final static String START_DATE_TAG = "startDatePicker";
     private final static String END_DATE_TAG = "endDatePicker";
-    private static SimpleDateFormat format;
     android.support.v4.app.DialogFragment fragment;
     private static Date startDate;
     private static Date endDate;
+
+    // Firebase
+    FirebaseFirestore db;
 
     private enum DateEditText {
         startDateEditText,
@@ -37,6 +41,8 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_absence);
+
+        db = FirebaseFirestore.getInstance();
     }
 
     @Override
@@ -45,12 +51,17 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         initializeDatePickers();
     }
 
+    /**
+     * Puts current date into both date picker EditTexts.
+     * Sets onClick listeners.
+     * Saves Dates from these EditTexts into instance variables, so that they can be access
+     * with other methods.
+      */
+
     private void initializeDatePickers() {
         // Add current date to both pickers.
-        format = new SimpleDateFormat("EEE, MMMM dd, yyyy", Locale.getDefault());
-        String now = format.format(new Date());
-        setDateInEditText(DateEditText.startDateEditText, now, new Date());
-        setDateInEditText(DateEditText.endDateEditText, now, new Date());
+        setDateInEditText(DateEditText.startDateEditText, new Date());
+        setDateInEditText(DateEditText.endDateEditText, new Date());
 
         // Set onClickListeners for both pickers to open date pickers.
         ((EditText) findViewById(R.id.start_date_editText)).setOnClickListener(getDateOnClickListener(START_DATE_TAG));
@@ -67,16 +78,16 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         };
     }
 
+    // From DatePickerDialog.OnDateSetListener interface.
     @Override
     public void onDateSet(DatePicker datePicker, int year, int month, int day) {
         Date datePickerDate = getDateFromDatePicker(datePicker);
-        String date = format.format(datePickerDate);
 
         if(START_DATE_TAG.equals(fragment.getTag())) {
-            setDateInEditText(DateEditText.startDateEditText, date, datePickerDate);
+            setDateInEditText(DateEditText.startDateEditText, datePickerDate);
 
         } else if (END_DATE_TAG.equals(fragment.getTag())) {
-            setDateInEditText(DateEditText.endDateEditText, date, datePickerDate);
+            setDateInEditText(DateEditText.endDateEditText, datePickerDate);
         }
 
         updateUI();
@@ -90,23 +101,31 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         );
     }
 
-    private void setDateInEditText(DateEditText editText, String text, Date date) {
+    private void setDateInEditText(DateEditText editText, Date date) {
         EditText dateView;
+        SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd, yyyy", Locale.getDefault()); /* Tue, Jan 12, 2018 */
+        String dateStr = format.format(date);
+
         switch(editText) {
             case startDateEditText:
                 dateView = findViewById(R.id.start_date_editText);
-                dateView.setText(text);
+                dateView.setText(dateStr);
                 startDate = date;
                 break;
 
             case endDateEditText:
                 dateView = findViewById(R.id.end_date_editText);
-                dateView.setText(text);
+                dateView.setText(dateStr);
                 endDate = date;
                 break;
         }
     }
 
+    /**
+     * Gets Date instance from DatePicker.
+     * @param datePicker
+     * @return instance of Date.
+     */
     private java.util.Date getDateFromDatePicker(DatePicker datePicker){
         int day = datePicker.getDayOfMonth();
         int month = datePicker.getMonth();
@@ -118,6 +137,9 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         return calendar.getTime();
     }
 
+    /**
+     * Alert with red color in startEditText, in case when end date is earlier than start date.
+     */
     private void updateUI() {
         int color;
 
@@ -167,6 +189,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
             }
 
+            // Default value, shouldn't occur.
             return new Date();
         }
     }

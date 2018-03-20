@@ -42,7 +42,9 @@ dependencies {
     implementation 'jp.wasabeef:picasso-transformations:2.2.1'
 
     // Firebase Database
-    implementation 'com.google.firebase:firebase-database:11.8.0'
+//    implementation 'com.google.firebase:firebase-database:11.8.0'
+    // Firebase Firestore
+    compile 'com.google.firebase:firebase-firestore:11.8.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
