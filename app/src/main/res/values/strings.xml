@@ -8,4 +8,5 @@
     <string name="absence_type_label">Type of absence</string>
     <string name="start_date_label">Start</string>
     <string name="end_date_label">End</string>
+    <string name="absence_note_label">Note (optional)</string>
 </resources>
