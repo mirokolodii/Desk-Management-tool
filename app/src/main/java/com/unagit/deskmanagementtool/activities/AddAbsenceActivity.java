@@ -20,11 +20,16 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.AbsenceType;
 
@@ -32,16 +37,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class AddAbsenceActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
     private final static String START_DATE_TAG = "startDatePicker";
     private final static String END_DATE_TAG = "endDatePicker";
-    android.support.v4.app.DialogFragment fragment;
+    private android.support.v4.app.DialogFragment fragment;
     private static Date startDate;
     private static Date endDate;
-    final ArrayList<AbsenceType> absenceTypes = new ArrayList<>();
+    private final ArrayList<AbsenceType> absenceTypes = new ArrayList<>();
+    private FirebaseUser mFirebaseUser;
+    private Spinner spinner;
 
     // Firebase
     FirebaseFirestore db;
@@ -60,6 +69,9 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         db = FirebaseFirestore.getInstance();
 
         updateAbsenceTypesSpinner();
+
+        // TODO: change this - we need to get user uid as intent extra.
+        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
 
     }
@@ -93,7 +105,51 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
     private void saveAbsence() {
 
+        if(!areCorrectDates()) {
+            setDatesErrorDialog();
+            return;
+        }
+
+        String userUid = mFirebaseUser.getUid();
+
+        AbsenceType absenceType = (AbsenceType) spinner.getSelectedItem();
+
+        EditText noteView = findViewById(R.id.absence_note_editText);
+        String note = noteView.getText().toString().trim();
+
+        Map<String, Object> absence = new HashMap<>();
+        absence.put("type", absenceType.getName());
+        absence.put("start_date", startDate.getTime());
+        absence.put("end_date", endDate.getTime());
+        if(!note.isEmpty()) {
+            absence.put("note", note);
+        }
+        if(absenceType.isRequiredApproval()) {
+            absence.put("required_approval", true);
+            absence.put("approval_status", "Pending Approval");
+        }
+
+        DocumentReference absenceRef = db.collection("persons")
+                .document(userUid)
+                .collection("absences")
+                .document();
+        absenceRef.set(absence, SetOptions.merge())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(AddAbsenceActivity.this, "Absence saved.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+
+
     }
+
+
+    private void setDatesErrorDialog() {
+
+    }
+
 
     /**
      * Gets absence types from db and populates spinner with received data.
@@ -117,7 +173,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
                     Log.d("AddAbsenceActivity", "absenceTypes: " + type.getName() + ": " + type.isRequiredApproval() + "\n");
                 }
 
-                Spinner spinner = findViewById(R.id.absence_type_spinner);
+                spinner = findViewById(R.id.absence_type_spinner);
                 AbsenceSpinnerAdapter adapter = new AbsenceSpinnerAdapter();
                 spinner.setAdapter(adapter);
 //                spinner.getSelectedItem();
@@ -142,8 +198,8 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         setDateInEditText(DateEditText.endDateEditText, new Date());
 
         // Set onClickListeners for both pickers to open date pickers.
-        ((EditText) findViewById(R.id.start_date_editText)).setOnClickListener(getDateOnClickListener(START_DATE_TAG));
-        ((EditText) findViewById(R.id.end_date_editText)).setOnClickListener(getDateOnClickListener(END_DATE_TAG));
+        (findViewById(R.id.start_date_editText)).setOnClickListener(getDateOnClickListener(START_DATE_TAG));
+        (findViewById(R.id.end_date_editText)).setOnClickListener(getDateOnClickListener(END_DATE_TAG));
     }
 
     /**
@@ -210,7 +266,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
     /**
      * Gets Date instance from DatePicker.
-     * @param datePicker
+     * @param datePicker with date inside.
      * @return instance of Date.
      */
     private java.util.Date getDateFromDatePicker(DatePicker datePicker){
