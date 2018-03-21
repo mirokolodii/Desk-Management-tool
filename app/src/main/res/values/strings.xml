@@ -10,4 +10,5 @@
     <string name="start_date_label">Start</string>
     <string name="end_date_label">End</string>
     <string name="absence_note_label">Note (optional)</string>
+    <string name="absences_activity_label">Absences</string>
 </resources>

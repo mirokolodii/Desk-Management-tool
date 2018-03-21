@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -78,10 +79,13 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         db = FirebaseFirestore.getInstance();
 
         updateAbsenceTypesSpinner();
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
         getIntentData();
-
-
+        initializeDatePickers();
     }
 
     /**
@@ -93,7 +97,14 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     private void getIntentData() {
         String uid = getIntent().getStringExtra(EXTRA_USER_ID);
         if(uid == null) {
-            uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            // Check if user is signed in (non-null) and update UI accordingly.
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if(user == null) {
+                // Redirect to login activity.
+                launchSignInActivity();
+            } else {
+                uid = user.getUid();
+            }
         }
         mUserId  = uid;
 
@@ -105,11 +116,10 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         }
     }
 
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        initializeDatePickers();
+    private void launchSignInActivity() {
+        Intent signInActivityIntent = new Intent(this, SignInActivity.class);
+        startActivity(signInActivityIntent);
+        finish();
     }
 
     // Add menu into activity
@@ -189,6 +199,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast.makeText(AddAbsenceActivity.this, "Absence saved.", Toast.LENGTH_SHORT).show();
+                        AddAbsenceActivity.this.finish();
                     }
                 });
 
@@ -211,13 +222,10 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         dialog.show();
     }
 
-
     /**
      * Gets absence types from db and populates spinner with received data.
      */
     private void updateAbsenceTypesSpinner() {
-
-
         // Get items from db and put into array.
         db.collection("absence_types")
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -228,12 +236,6 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
                     AbsenceType absenceType = document.toObject(AbsenceType.class);
                     absenceTypes.add(absenceType);
                 }
-
-//                Log.d("AddAbsenceActivity", "absenceTypes: " + absenceTypes.toString());
-//                for(AbsenceType type : absenceTypes) {
-//                    Log.d("AddAbsenceActivity", "absenceTypes: " + type.getName() + ": " + type.isRequiredApproval() + "\n");
-//                }
-
                 spinner = findViewById(R.id.absence_type_spinner);
                 AbsenceSpinnerAdapter adapter = new AbsenceSpinnerAdapter();
                 spinner.setAdapter(adapter);
