@@ -34,6 +34,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.unagit.deskmanagementtool.R;
+import com.unagit.deskmanagementtool.brain.Absence;
 import com.unagit.deskmanagementtool.brain.AbsenceType;
 
 import java.text.SimpleDateFormat;
@@ -99,6 +100,8 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         String absenceId = getIntent().getStringExtra(EXTRA_ABSENCE_ID);
         if(absenceId != null) {
             mAbsenceId = absenceId;
+            // TODO: get info from existing absence.
+            // dates, type, note.
         }
     }
 
@@ -142,18 +145,21 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         EditText noteView = findViewById(R.id.absence_note_editText);
         String note = noteView.getText().toString().trim();
 
-        Map<String, Object> absence = new HashMap<>();
-        absence.put("type", absenceType.getName());
-        absence.put("start_date", startDate.getTime());
-        absence.put("end_date", endDate.getTime());
-        if(!note.isEmpty()) {
-            absence.put("note", note);
-        }
-        if(absenceType.isRequiredApproval()) {
-            absence.put("required_approval", true);
-            absence.put("is_approved", false);
-            absence.put("approval_status", "Pending Approval");
-        }
+        Absence absence = new Absence(absenceType.getName(),
+                startDate.getTime(), endDate.getTime(), note, absenceType.isRequiredApproval());
+//
+//        Map<String, Object> absence = new HashMap<>();
+//        absence.put("type", absenceType.getName());
+//        absence.put("start_date", startDate.getTime());
+//        absence.put("end_date", endDate.getTime());
+//        if(!note.isEmpty()) {
+//            absence.put("note", note);
+//        }
+//        if(absenceType.isRequiredApproval()) {
+//            absence.put("required_approval", true);
+//            absence.put("is_approved", false);
+//            absence.put("approval_status", "Pending Approval");
+//        }
 
         /*
         Create reference to absence document.

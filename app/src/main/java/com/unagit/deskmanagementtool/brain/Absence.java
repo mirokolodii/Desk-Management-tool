@@ -21,21 +21,21 @@ public class Absence {
 
     public Absence() {}
 
-    public Absence(String type, long startDate, long endDate, @Nullable String note) {
-        this.type = type;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        if(note != null) {
-            this.note = note;
-        }
-    }
-
     public Absence(String type, long startDate, long endDate, @Nullable String note,  boolean requiredApproval) {
         this(type, startDate, endDate, note);
         if(requiredApproval) {
             this.requiredApproval = requiredApproval;
             this.isApproved = false;
             this.approvalStatus = PENDING_APPROVAL_LABEL;
+        }
+    }
+
+    private Absence(String type, long startDate, long endDate, @Nullable String note) {
+        this.type = type;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        if(note != null) {
+            this.note = note;
         }
     }
 
