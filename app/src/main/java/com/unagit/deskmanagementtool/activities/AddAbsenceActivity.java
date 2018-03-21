@@ -3,7 +3,9 @@ package com.unagit.deskmanagementtool.activities;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +27,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -43,14 +46,19 @@ import java.util.Map;
 
 public class AddAbsenceActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
+    // Intent extras.
+    public final static String EXTRA_USER_ID = "uId";
+    public final static String EXTRA_ABSENCE_ID = "absenceId";
+
     private final static String START_DATE_TAG = "startDatePicker";
     private final static String END_DATE_TAG = "endDatePicker";
     private android.support.v4.app.DialogFragment fragment;
     private static Date startDate;
     private static Date endDate;
     private final ArrayList<AbsenceType> absenceTypes = new ArrayList<>();
-    private FirebaseUser mFirebaseUser;
     private Spinner spinner;
+    private String mUserId;
+    private String mAbsenceId;
 
     // Firebase
     FirebaseFirestore db;
@@ -70,11 +78,30 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
         updateAbsenceTypesSpinner();
 
-        // TODO: change this - we need to get user uid as intent extra.
-        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        getIntentData();
 
 
     }
+
+    /**
+     *  Gets data from intent.
+     * 1. Firebase user ID from intent. If not available, uses current one instead.
+     * 2. Absence ID from intent (so that it can be used to update existing absence).
+     * If not available, it means that we create new absence (auto-generated ID will be used).
+     */
+    private void getIntentData() {
+        String uid = getIntent().getStringExtra(EXTRA_USER_ID);
+        if(uid == null) {
+            uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
+        mUserId  = uid;
+
+        String absenceId = getIntent().getStringExtra(EXTRA_ABSENCE_ID);
+        if(absenceId != null) {
+            mAbsenceId = absenceId;
+        }
+    }
+
 
     @Override
     protected void onStart() {
@@ -110,8 +137,6 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
             return;
         }
 
-        String userUid = mFirebaseUser.getUid();
-
         AbsenceType absenceType = (AbsenceType) spinner.getSelectedItem();
 
         EditText noteView = findViewById(R.id.absence_note_editText);
@@ -126,13 +151,33 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         }
         if(absenceType.isRequiredApproval()) {
             absence.put("required_approval", true);
+            absence.put("is_approved", false);
             absence.put("approval_status", "Pending Approval");
         }
 
-        DocumentReference absenceRef = db.collection("persons")
-                .document(userUid)
-                .collection("absences")
-                .document();
+        /*
+        Create reference to absence document.
+        If we have absence ID (mAbsenceID != null), means that we are updating existing record.
+        Otherwise create a new one.
+         */
+        CollectionReference absenceColRef = db.collection("persons")
+                .document(mUserId)
+                .collection("absences");
+
+        DocumentReference absenceRef;
+        if(mAbsenceId != null) {
+            absenceRef = db.collection("persons")
+                    .document(mUserId)
+                    .collection("absences")
+                    .document(mAbsenceId);
+        } else {
+            absenceRef = db.collection("persons")
+                    .document(mUserId)
+                    .collection("absences")
+                    .document();
+        }
+
+        // Save absence with merge option, so that we don't override existing data.
         absenceRef.set(absence, SetOptions.merge())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -147,7 +192,17 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
 
     private void setDatesErrorDialog() {
-
+        AlertDialog dialog = new AlertDialog.Builder(this).create();
+        dialog.setTitle("Error");
+        dialog.setMessage("The end date must not be before start date.");
+        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Do nothing
+            }
+        });
+        dialog.setIcon(android.R.drawable.ic_dialog_alert);
+        dialog.show();
     }
 
 
@@ -163,27 +218,21 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
             @Override
             public void onSuccess(QuerySnapshot documentSnapshots) {
                 for(DocumentSnapshot document : documentSnapshots) {
-                    Log.d("AddAbsenceActivity", document.getData().toString());
+//                    Log.d("AddAbsenceActivity", document.getData().toString());
                     AbsenceType absenceType = document.toObject(AbsenceType.class);
                     absenceTypes.add(absenceType);
                 }
 
 //                Log.d("AddAbsenceActivity", "absenceTypes: " + absenceTypes.toString());
-                for(AbsenceType type : absenceTypes) {
-                    Log.d("AddAbsenceActivity", "absenceTypes: " + type.getName() + ": " + type.isRequiredApproval() + "\n");
-                }
+//                for(AbsenceType type : absenceTypes) {
+//                    Log.d("AddAbsenceActivity", "absenceTypes: " + type.getName() + ": " + type.isRequiredApproval() + "\n");
+//                }
 
                 spinner = findViewById(R.id.absence_type_spinner);
                 AbsenceSpinnerAdapter adapter = new AbsenceSpinnerAdapter();
                 spinner.setAdapter(adapter);
-//                spinner.getSelectedItem();
             }
         });
-
-
-
-
-        //
     }
 
     /**
