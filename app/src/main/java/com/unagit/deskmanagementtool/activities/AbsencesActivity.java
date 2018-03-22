@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -57,21 +58,57 @@ public class AbsencesActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        getIntentData();
 
-        getAbsences();
+        if(isCorrectUserId()) {
+            getAbsences();
+            prepareRecycleView();
+            if(adapter != null) {
+                adapter.startListening();
+            }
+        }
 
-        prepareRecycleView();
-
-        adapter.startListening();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
 
-        adapter.stopListening();
+        if(adapter != null) {
+            adapter.stopListening();
+        }
     }
+
+    /**
+     *  Gets data from intent.
+     * Firebase user ID from intent. If not available, uses current one instead.
+     */
+    private boolean isCorrectUserId() {
+        // Firstly, try to get user ID from intent.
+        String uid = getIntent().getStringExtra(EXTRA_USER_ID);
+        if(uid == null) {
+            // Secondly, check if user is signed in.
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if(user == null) {
+                // Redirect to login activity.
+                Log.d("AbsencesActivity", "UserID is null. Launching SignInActivity");
+                launchSignInActivity();
+                return false;
+
+            } else {
+                uid = user.getUid();
+            }
+        }
+        mUserId  = uid;
+        return true;
+    }
+
+    private void launchSignInActivity() {
+        Intent signInActivityIntent = new Intent(this, SignInActivity.class);
+        signInActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(signInActivityIntent);
+        this.finish();
+    }
+
 
     private void prepareRecycleView() {
         // RecycleView
@@ -82,8 +119,15 @@ public class AbsencesActivity extends AppCompatActivity {
         mRecyclerView.setHasFixedSize(true);
 
         // use a linear layout manager
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(layoutManager);
+
+
+        // Add divider
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
+                layoutManager.getOrientation());
+        mRecyclerView.addItemDecoration(dividerItemDecoration);
+
 
         // specify an adapter
         Query absencesForUserQuery = FirebaseFirestore.getInstance()
@@ -100,18 +144,18 @@ public class AbsencesActivity extends AppCompatActivity {
 
 
         class AbsenceHolder extends RecyclerView.ViewHolder {
-            public TextView type;
-            public TextView dates;
-            public TextView approvalStatus;
+            TextView type;
+            TextView dates;
+            TextView approvalStatus;
 
-            public AbsenceHolder(View v) {
+            AbsenceHolder(View v) {
                 super(v);
 
                 //TODO: set onClickListener on v.
 
                 type = v.findViewById(R.id.type_recycle_view_single_item_textView);
                 dates = v.findViewById(R.id.dates_recycle_view_single_item_textView);
-                approvalStatus = findViewById(R.id.approval_status_recycle_view_single_item_textView);
+                approvalStatus = v.findViewById(R.id.approval_status_recycle_view_single_item_textView);
                 Log.d("AbsencesActivity", "AbsenceHolder constructor triggered.");
             }
         }
@@ -123,10 +167,12 @@ public class AbsencesActivity extends AppCompatActivity {
                 Log.d("AbsencesActivity", "onBindViewHolder triggered with " + model.getType());
                 // Bind the Chat object to the ChatHolder
                 holder.type.setText(model.getType());
-//                holder.approvalStatus.setText(
-//                        (model.getApprovalStatus() != null)
-//                        ? model.getApprovalStatus() : ""
-//                );
+//                holder.approvalStatus.setText("status");
+                holder.dates.setText("dates");
+                holder.approvalStatus.setText(
+                        (model.getApprovalStatus() != null)
+                        ? model.getApprovalStatus() : ""
+                );
 //                holder.approvalStatus.setText(model.getApprovalStatus());
 
             }
@@ -144,6 +190,8 @@ public class AbsencesActivity extends AppCompatActivity {
         };
 
 
+
+
         // Set adapter for RecycleView
         mRecyclerView.setAdapter(adapter);
 
@@ -152,30 +200,6 @@ public class AbsencesActivity extends AppCompatActivity {
 
 
 
-    /**
-     *  Gets data from intent.
-     * Firebase user ID from intent. If not available, uses current one instead.
-     */
-    private void getIntentData() {
-        String uid = getIntent().getStringExtra(EXTRA_USER_ID);
-        if(uid == null) {
-            // Check if user is signed in (non-null) and update UI accordingly.
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if(user == null) {
-                // Redirect to login activity.
-                launchSignInActivity();
-            } else {
-                uid = user.getUid();
-            }
-        }
-        mUserId  = uid;
-    }
-
-    private void launchSignInActivity() {
-        Intent signInActivityIntent = new Intent(this, SignInActivity.class);
-        startActivity(signInActivityIntent);
-        finish();
-    }
 
     /**
      * Gets absences for user with id == mUserId from db
