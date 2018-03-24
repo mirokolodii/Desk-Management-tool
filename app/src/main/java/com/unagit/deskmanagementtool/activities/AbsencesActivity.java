@@ -175,9 +175,7 @@ public class AbsencesActivity extends AppCompatActivity {
                 Log.d("AbsencesActivity", "onBindViewHolder triggered with " + model.getType());
                 // Bind the Chat object to the ChatHolder
                 holder.type.setText(model.getType());
-                holder.dates.setText(getDatesString(
-                        new Date(model.getStartDate()),
-                        new Date(model.getEndDate() )));
+                holder.dates.setText(getDatesString(model));
                 setApprovalStatus(holder.approvalStatus, model.getApprovalStatus());
 
             }
@@ -195,11 +193,13 @@ public class AbsencesActivity extends AppCompatActivity {
 
             /**
              * Prepares a text string from start and end dates.
-             * @param start date
-             * @param end date
+             * @param model Absence instance, from which we can get start and end dates.
              * @return string of dates in specified format.
              */
-            private String getDatesString(Date start, Date end) {
+            private String getDatesString(Absence model) {
+                Date start = new Date(model.getStartDate());
+                Date end = new Date(model.getEndDate());
+
                 SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd", Locale.getDefault()); /* Tue, Jan 12 */
                 String datesString = format.format(start);
                 if(end.getTime() > start.getTime()) {
@@ -210,7 +210,7 @@ public class AbsencesActivity extends AppCompatActivity {
 
             private void setApprovalStatus(TextView view, String status) {
                 if (status != null) {
-                    view.setVisibility(View.VISIBLE);
+//                    view.setVisibility(View.VISIBLE);
                     view.setText(status);
                     if(status.equals(APPROVED_STATUS)) { // Approved
                         view.setTextColor(Color.GREEN);
@@ -219,7 +219,7 @@ public class AbsencesActivity extends AppCompatActivity {
                     }
 
                 } else {
-                    view.setVisibility(View.GONE);
+//                    view.setVisibility(View.GONE);
                     view.setText("");
                 }
             }
