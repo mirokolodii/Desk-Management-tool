@@ -3,6 +3,7 @@ package com.unagit.deskmanagementtool.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -15,9 +16,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.firebase.ui.firestore.SnapshotParser;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -154,7 +157,16 @@ public class AbsencesActivity extends AppCompatActivity {
         //  * query is the Query object defined above.
         //  * Chat.class instructs the adapter to convert each DocumentSnapshot to a Chat object
         FirestoreRecyclerOptions<Absence> options = new FirestoreRecyclerOptions.Builder<Absence>()
-                .setQuery(absencesForUserQuery, Absence.class)
+//                .setQuery(absencesForUserQuery, Absence.class)
+                .setQuery(absencesForUserQuery, new SnapshotParser<Absence>() {
+                    @NonNull
+                    @Override
+                    public Absence parseSnapshot(@NonNull DocumentSnapshot snapshot) {
+                        Absence absence = snapshot.toObject(Absence.class);
+                        absence.setId(snapshot.getId());
+                        return absence;
+                    }
+                })
                 .build();
 
 
@@ -162,24 +174,15 @@ public class AbsencesActivity extends AppCompatActivity {
             TextView type;
             TextView dates;
             TextView approvalStatus;
+            View view;
 
             AbsenceHolder(View v) {
                 super(v);
 
-                //TODO: set onClickListener on v.
-
                 type = v.findViewById(R.id.type_recycle_view_single_item_textView);
                 dates = v.findViewById(R.id.dates_recycle_view_single_item_textView);
                 approvalStatus = v.findViewById(R.id.approval_status_recycle_view_single_item_textView);
-
-                v.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        launchShowAbsenceActivity();
-                    }
-                });
-
-
+                view = v;
             }
         }
 
@@ -194,6 +197,15 @@ public class AbsencesActivity extends AppCompatActivity {
                 holder.type.setText(model.getType());
                 holder.dates.setText(getDatesString(model));
                 setApprovalStatus(holder.approvalStatus, model.getApprovalStatus());
+
+                final String id = model.getId();
+                holder.view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+//                        launchShowAbsenceActivity();
+                        Toast.makeText(AbsencesActivity.this, id, Toast.LENGTH_SHORT).show();
+                    }
+                });
 
             }
 
