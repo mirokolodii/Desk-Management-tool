@@ -1,6 +1,7 @@
 package com.unagit.deskmanagementtool.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
@@ -27,14 +29,20 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import static com.unagit.deskmanagementtool.activities.AddAbsenceActivity.EXTRA_USER_ID;
+
 
 public class AbsencesActivity extends AppCompatActivity {
 
     private String mUserId;
     private FirestoreRecyclerAdapter adapter;
+    private final static String APPROVED_STATUS = "Approved";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,13 +175,10 @@ public class AbsencesActivity extends AppCompatActivity {
                 Log.d("AbsencesActivity", "onBindViewHolder triggered with " + model.getType());
                 // Bind the Chat object to the ChatHolder
                 holder.type.setText(model.getType());
-//                holder.approvalStatus.setText("status");
-                holder.dates.setText("dates");
-                holder.approvalStatus.setText(
-                        (model.getApprovalStatus() != null)
-                        ? model.getApprovalStatus() : ""
-                );
-//                holder.approvalStatus.setText(model.getApprovalStatus());
+                holder.dates.setText(getDatesString(
+                        new Date(model.getStartDate()),
+                        new Date(model.getEndDate() )));
+                setApprovalStatus(holder.approvalStatus, model.getApprovalStatus());
 
             }
 
@@ -186,6 +191,37 @@ public class AbsencesActivity extends AppCompatActivity {
                         .inflate(R.layout.content_absence_recycle_view_item, group, false);
 
                 return new AbsenceHolder(view);
+            }
+
+            /**
+             * Prepares a text string from start and end dates.
+             * @param start date
+             * @param end date
+             * @return string of dates in specified format.
+             */
+            private String getDatesString(Date start, Date end) {
+                SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd", Locale.getDefault()); /* Tue, Jan 12 */
+                String datesString = format.format(start);
+                if(end.getTime() > start.getTime()) {
+                    datesString += " - " + format.format(end);
+                }
+                return datesString;
+            }
+
+            private void setApprovalStatus(TextView view, String status) {
+                if (status != null) {
+                    view.setVisibility(View.VISIBLE);
+                    view.setText(status);
+                    if(status.equals(APPROVED_STATUS)) { // Approved
+                        view.setTextColor(Color.GREEN);
+                    } else { // Pending Approval
+                        view.setTextColor(Color.RED);
+                    }
+
+                } else {
+                    view.setVisibility(View.GONE);
+                    view.setText("");
+                }
             }
         };
 
