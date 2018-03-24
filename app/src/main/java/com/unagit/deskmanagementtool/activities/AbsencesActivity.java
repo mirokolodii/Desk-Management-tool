@@ -163,7 +163,7 @@ public class AbsencesActivity extends AppCompatActivity {
                     @Override
                     public Absence parseSnapshot(@NonNull DocumentSnapshot snapshot) {
                         Absence absence = snapshot.toObject(Absence.class);
-                        absence.setId(snapshot.getId());
+                        absence.id = snapshot.getId();
                         return absence;
                     }
                 })
@@ -198,7 +198,7 @@ public class AbsencesActivity extends AppCompatActivity {
                 holder.dates.setText(getDatesString(model));
                 setApprovalStatus(holder.approvalStatus, model.getApprovalStatus());
 
-                final String id = model.getId();
+                final String id = model.id;
                 holder.view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
