@@ -2,6 +2,11 @@ package com.unagit.deskmanagementtool.brain;
 
 import android.support.annotation.Nullable;
 
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.ServerTimestamp;
+
+import java.util.Date;
+
 /**
  * Instance of absence, used with Firestore Firebase.
  */
@@ -15,8 +20,10 @@ public class Absence {
     private long startDate;
     private long endDate;
     private boolean requiredApproval;
-    private boolean isApproved;
+    private boolean approved;
 
+    @ServerTimestamp
+    private Date timestamp;
 
 
     public Absence() {}
@@ -25,7 +32,7 @@ public class Absence {
         this(type, startDate, endDate, note);
         if(requiredApproval) {
             this.requiredApproval = requiredApproval;
-            this.isApproved = false;
+            this.approved = false;
             this.approvalStatus = PENDING_APPROVAL_LABEL;
         }
     }
@@ -72,6 +79,11 @@ public class Absence {
     }
 
     public boolean isApproved() {
-        return isApproved;
+        return approved;
     }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
 }

@@ -37,6 +37,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.ServerTimestamp;
 import com.google.firebase.firestore.SetOptions;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
@@ -67,6 +68,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     private Spinner spinner;
     private String mUserId;
     private String mAbsenceId;
+
 
     // Firebase
     FirebaseFirestore db;
@@ -212,7 +214,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast.makeText(AddAbsenceActivity.this, "Absence saved.", Toast.LENGTH_SHORT).show();
-                        AddAbsenceActivity.this.finish();
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -223,7 +225,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
                     }
                 });
 
-
+        AddAbsenceActivity.this.finish();
 
     }
 

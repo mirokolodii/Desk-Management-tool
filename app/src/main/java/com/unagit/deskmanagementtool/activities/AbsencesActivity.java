@@ -43,6 +43,7 @@ public class AbsencesActivity extends AppCompatActivity {
     private String mUserId;
     private FirestoreRecyclerAdapter adapter;
     private final static String APPROVED_STATUS = "Approved";
+    private final static String PENDING_APPROVAL_STATUS = "Pending Approval";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +69,7 @@ public class AbsencesActivity extends AppCompatActivity {
         super.onStart();
 
         if(isCorrectUserId()) {
-            getAbsences();
+//            getAbsences();
             prepareRecycleView();
             if(adapter != null) {
                 adapter.startListening();
@@ -117,6 +118,11 @@ public class AbsencesActivity extends AppCompatActivity {
         this.finish();
     }
 
+    private void launchShowAbsenceActivity() {
+        Intent showAbsenceActivityIntent = new Intent(this, ShowAbsenceActivity.class);
+        startActivity(showAbsenceActivityIntent);
+    }
+
 
     private void prepareRecycleView() {
         // RecycleView
@@ -141,7 +147,8 @@ public class AbsencesActivity extends AppCompatActivity {
         Query absencesForUserQuery = FirebaseFirestore.getInstance()
                 .collection("persons")
                 .document(mUserId)
-                .collection("absences");
+                .collection("absences")
+                .orderBy("timestamp", Query.Direction.DESCENDING);
 
         // Configure recycler adapter options:
         //  * query is the Query object defined above.
@@ -164,9 +171,19 @@ public class AbsencesActivity extends AppCompatActivity {
                 type = v.findViewById(R.id.type_recycle_view_single_item_textView);
                 dates = v.findViewById(R.id.dates_recycle_view_single_item_textView);
                 approvalStatus = v.findViewById(R.id.approval_status_recycle_view_single_item_textView);
-                Log.d("AbsencesActivity", "AbsenceHolder constructor triggered.");
+
+                v.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        launchShowAbsenceActivity();
+                    }
+                });
+
+
             }
         }
+
+
 
         adapter = new FirestoreRecyclerAdapter<Absence, AbsenceHolder>(options) {
 
@@ -237,43 +254,46 @@ public class AbsencesActivity extends AppCompatActivity {
 
 
 
-    /**
-     * Gets absences for user with id == mUserId from db
-     * and populate them into RecycleView.
-     */
-    private void getAbsences() {
+//    /**
+//     * Gets absences for user with id == mUserId from db
+//     * and populate them into RecycleView.
+//     */
+//    private void getAbsences() {
+//
+//        final ArrayList<Absence> absences = new ArrayList<>();
+//        // Firebase
+//
+//        Query absencesForUserQuery = FirebaseFirestore.getInstance()
+//                .collection("persons")
+//                .document(mUserId)
+//                .collection("absences")
+//                .orderBy("timestamp");
+//
+////        FirebaseFirestore db = FirebaseFirestore.getInstance();
+////        CollectionReference absencesColRef = db.collection("persons").document(mUserId).collection("absences");
+////        absencesColRef
+//
+//        absencesForUserQuery
+//                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+//                    int i = 0;
+//                    public void onEvent(@Nullable QuerySnapshot snapshot,
+//                                        @Nullable FirebaseFirestoreException e) {
+//                        if (e != null) {
+//                            // Handle error
+//                            //...
+//                            return;
+//                        }
+//
+//                        // Convert query snapshot to a list of chats
+//
+//                        for (DocumentSnapshot document : snapshot) {
+//                            Absence absence = document.toObject(Absence.class);
+//                            absences.add(absence);
+//                            Log.d("AbsencesActivity", String.format("%d: Absence: %s", i++, absence.getType()));
+//                        }
+//                    }
+//                });
+//    }
 
-        final ArrayList<Absence> absences = new ArrayList<>();
-        // Firebase
 
-        Query absencesForUserQuery = FirebaseFirestore.getInstance()
-                .collection("persons")
-                .document(mUserId)
-                .collection("absences");
-
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//        CollectionReference absencesColRef = db.collection("persons").document(mUserId).collection("absences");
-//        absencesColRef
-
-        absencesForUserQuery
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    int i = 0;
-                    public void onEvent(@Nullable QuerySnapshot snapshot,
-                                        @Nullable FirebaseFirestoreException e) {
-                        if (e != null) {
-                            // Handle error
-                            //...
-                            return;
-                        }
-
-                        // Convert query snapshot to a list of chats
-
-                        for (DocumentSnapshot document : snapshot) {
-                            Absence absence = document.toObject(Absence.class);
-                            absences.add(absence);
-                            Log.d("AbsencesActivity", String.format("%d: Absence: %s", i++, absence.getType()));
-                        }
-                    }
-                });
-    }
 }

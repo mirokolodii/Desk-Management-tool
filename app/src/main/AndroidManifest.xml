@@ -10,11 +10,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".activities.MainActivity">
-            <!--<intent-filter>-->
-            <!--<action android:name="android.intent.action.MAIN" />-->
 
-            <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
         </activity>
         <activity
             android:name=".activities.SignInActivity"
@@ -23,20 +25,17 @@
             android:name=".activities.AbsencesActivity"
             android:label="@string/absences_activity_label"
             android:parentActivityName=".activities.MainActivity">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-
         </activity>
-
         <activity
             android:name=".activities.AddAbsenceActivity"
             android:label="@string/title_activity_add_absence"
             android:parentActivityName=".activities.AbsencesActivity" />
+        <activity android:name=".activities.ShowAbsenceActivity"></activity>
     </application>
 
 </manifest>
