@@ -55,9 +55,6 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
     private final static String TAG = "AddAbsenceActivity";
 
-    // Intent extras.
-    public final static String EXTRA_USER_ID = "uId";
-    public final static String EXTRA_ABSENCE_ID = "absenceId";
 
     private final static String START_DATE_TAG = "startDatePicker";
     private final static String END_DATE_TAG = "endDatePicker";
@@ -103,7 +100,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
      * If not available, it means that we create new absence (auto-generated ID will be used).
      */
     private void getIntentData() {
-        String uid = getIntent().getStringExtra(EXTRA_USER_ID);
+        String uid = getIntent().getStringExtra(Absence.EXTRA_USER_ID);
         if(uid == null) {
             // Check if user is signed in (non-null) and update UI accordingly.
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -116,7 +113,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         }
         mUserId  = uid;
 
-        String absenceId = getIntent().getStringExtra(EXTRA_ABSENCE_ID);
+        String absenceId = getIntent().getStringExtra(Absence.EXTRA_ABSENCE_ID);
         if(absenceId != null) {
             mAbsenceId = absenceId;
             // TODO: get info from existing absence.

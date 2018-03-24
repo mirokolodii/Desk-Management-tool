@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.ServerTimestamp;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -14,9 +15,21 @@ import java.util.Date;
  */
 
 @IgnoreExtraProperties
-public class Absence {
-    private final static String PENDING_APPROVAL_LABEL = "Pending Approval";
-    private final static String APPROVED_LABEL = "Approved";
+public class Absence implements Serializable {
+    // Intent extras.
+    public final static String EXTRA_SERIALIZABLE_OBJECT = "serializableObject";
+    public final static String EXTRA_USER_ID = "uId";
+    public final static String EXTRA_ABSENCE_ID = "absenceId";
+    public final static String EXTRA_START_DATE = "startDate";
+    public final static String EXTRA_END_DATE = "endDate";
+    public final static String EXTRA_TYPE = "type";
+    public final static String EXTRA_NOTE = "note";
+    public final static String EXTRA_APPROVAL_STATUS = "approvalStatus";
+    public final static String EXTRA_TIMESTAMP = "timestamp";
+
+
+    public final static String PENDING_APPROVAL_LABEL = "Pending Approval";
+    public final static String APPROVED_LABEL = "Approved";
     private String type;
     private String note;
     private String approvalStatus;

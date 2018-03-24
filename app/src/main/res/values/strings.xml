@@ -11,4 +11,7 @@
     <string name="end_date_label">End</string>
     <string name="absence_note_label">Note (optional)</string>
     <string name="absences_activity_label">Absences</string>
+    <string name="show_absence_activity_title">Absence</string>
+    <string name="approval_status_label">Approval status</string>
+    <string name="timestamp_label">Last modified</string>
 </resources>

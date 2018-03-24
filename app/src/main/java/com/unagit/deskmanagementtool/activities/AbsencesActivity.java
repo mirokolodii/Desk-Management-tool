@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -14,32 +13,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.firebase.ui.firestore.SnapshotParser;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-
-import static com.unagit.deskmanagementtool.activities.AddAbsenceActivity.EXTRA_USER_ID;
-
 
 public class AbsencesActivity extends AppCompatActivity {
 
@@ -96,7 +83,7 @@ public class AbsencesActivity extends AppCompatActivity {
      */
     private boolean isCorrectUserId() {
         // Firstly, try to get user ID from intent.
-        String uid = getIntent().getStringExtra(EXTRA_USER_ID);
+        String uid = getIntent().getStringExtra(Absence.EXTRA_USER_ID);
         if(uid == null) {
             // Secondly, check if user is signed in.
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -121,8 +108,19 @@ public class AbsencesActivity extends AppCompatActivity {
         this.finish();
     }
 
-    private void launchShowAbsenceActivity() {
+    private void launchShowAbsenceActivity(Absence model) {
         Intent showAbsenceActivityIntent = new Intent(this, ShowAbsenceActivity.class);
+        showAbsenceActivityIntent
+                .putExtra(Absence.EXTRA_SERIALIZABLE_OBJECT, model);
+
+//                .putExtra(Absence.EXTRA_ABSENCE_ID, model.id)
+//                .putExtra(Absence.EXTRA_TYPE, model.getType())
+//                .putExtra(Absence.EXTRA_START_DATE, model.getStartDate())
+//                .putExtra(Absence.EXTRA_END_DATE, model.getEndDate())
+//                .putExtra(Absence.EXTRA_APPROVAL_STATUS, model.getApprovalStatus())
+//                .putExtra(Absence.EXTRA_NOTE, model.getNote())
+//                .putExtra(Absence.EXTRA_TIMESTAMP, model.getTimestamp());
+
         startActivity(showAbsenceActivityIntent);
     }
 
@@ -191,19 +189,19 @@ public class AbsencesActivity extends AppCompatActivity {
         adapter = new FirestoreRecyclerAdapter<Absence, AbsenceHolder>(options) {
 
             @Override
-            public void onBindViewHolder(AbsenceHolder holder, int position, Absence model) {
+            public void onBindViewHolder(AbsenceHolder holder, int position, final Absence model) {
                 Log.d("AbsencesActivity", "onBindViewHolder triggered with " + model.getType());
                 // Bind the Chat object to the ChatHolder
                 holder.type.setText(model.getType());
                 holder.dates.setText(getDatesString(model));
                 setApprovalStatus(holder.approvalStatus, model.getApprovalStatus());
 
-                final String id = model.id;
+//                final String id = model.id;
                 holder.view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-//                        launchShowAbsenceActivity();
-                        Toast.makeText(AbsencesActivity.this, id, Toast.LENGTH_SHORT).show();
+                        launchShowAbsenceActivity(model);
+//                        Toast.makeText(AbsencesActivity.this, id, Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -249,9 +247,9 @@ public class AbsencesActivity extends AppCompatActivity {
 //                    view.setVisibility(View.VISIBLE);
                     view.setText(status);
                     if(status.equals(APPROVED_STATUS)) { // Approved
-                        view.setTextColor(Color.GREEN);
+                        view.setTextColor(getResources().getColor(R.color.approvedStatus));
                     } else { // Pending Approval
-                        view.setTextColor(Color.RED);
+                        view.setTextColor(getResources().getColor(R.color.pendingApprovalStatus));
                     }
 
                 } else {
