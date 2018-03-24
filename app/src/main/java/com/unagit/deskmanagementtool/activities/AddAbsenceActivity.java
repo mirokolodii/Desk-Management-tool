@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,7 +26,10 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -47,6 +51,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class AddAbsenceActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
+
+    private final static String TAG = "AddAbsenceActivity";
 
     // Intent extras.
     public final static String EXTRA_USER_ID = "uId";
@@ -146,11 +152,15 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     private void saveAbsence() {
 
         if(!areCorrectDates()) {
-            setDatesErrorDialog();
+            showErrorDialog("The end date must not be before start date.");
+            return;
+        } else if(!isCorrectType()) {
+            showErrorDialog("No absence type chosen.");
             return;
         }
 
         AbsenceType absenceType = (AbsenceType) spinner.getSelectedItem();
+
 
         EditText noteView = findViewById(R.id.absence_note_editText);
         String note = noteView.getText().toString().trim();
@@ -176,9 +186,12 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         If we have absence ID (mAbsenceID != null), means that we are updating existing record.
         Otherwise create a new one.
          */
+
+        /*
         CollectionReference absenceColRef = db.collection("persons")
                 .document(mUserId)
                 .collection("absences");
+        */
 
         DocumentReference absenceRef;
         if(mAbsenceId != null) {
@@ -201,17 +214,31 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
                         Toast.makeText(AddAbsenceActivity.this, "Absence saved.", Toast.LENGTH_SHORT).show();
                         AddAbsenceActivity.this.finish();
                     }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(AddAbsenceActivity.this, "Failed to save absence.", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Failed", e);
+                    }
                 });
 
 
 
     }
 
+    private boolean isCorrectType() {
+        return (
+                spinner != null
+                && spinner.getSelectedItem() != null
+        );
+    }
 
-    private void setDatesErrorDialog() {
+
+    private void showErrorDialog(String message) {
         AlertDialog dialog = new AlertDialog.Builder(this).create();
         dialog.setTitle("Error");
-        dialog.setMessage("The end date must not be before start date.");
+        dialog.setMessage(message);
         dialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -227,20 +254,27 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
      */
     private void updateAbsenceTypesSpinner() {
         // Get items from db and put into array.
-        db.collection("absence_types")
-                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot documentSnapshots) {
-                for(DocumentSnapshot document : documentSnapshots) {
+        db.collection("absence_types").get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot documentSnapshots) {
+                        for(DocumentSnapshot document : documentSnapshots) {
 //                    Log.d("AddAbsenceActivity", document.getData().toString());
-                    AbsenceType absenceType = document.toObject(AbsenceType.class);
-                    absenceTypes.add(absenceType);
-                }
-                spinner = findViewById(R.id.absence_type_spinner);
-                AbsenceSpinnerAdapter adapter = new AbsenceSpinnerAdapter();
-                spinner.setAdapter(adapter);
-            }
-        });
+                            AbsenceType absenceType = document.toObject(AbsenceType.class);
+                            absenceTypes.add(absenceType);
+                        }
+                        spinner = findViewById(R.id.absence_type_spinner);
+                        AbsenceSpinnerAdapter adapter = new AbsenceSpinnerAdapter();
+                        spinner.setAdapter(adapter);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(AddAbsenceActivity.this, "Failed to get types.", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Failed to get absence types with " + mUserId, e);
+                    }
+                });
     }
 
     /**
@@ -409,7 +443,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
         @Override
         public long getItemId(int i) {
-            return 0;
+            return i;
         }
 
         @Override
