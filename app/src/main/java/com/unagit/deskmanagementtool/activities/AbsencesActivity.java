@@ -219,10 +219,17 @@ public class AbsencesActivity extends AppCompatActivity {
 
                 SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd", Locale.getDefault()); /* Tue, Jan 12 */
                 String datesString = format.format(start);
-                if(end.getTime() > start.getTime()) {
+                if(!oneDayAbsence(model)) {
+//                if(true) {
                     datesString += " - " + format.format(end);
                 }
                 return datesString;
+            }
+
+            private boolean oneDayAbsence(Absence model) {
+                long startDays = model.getStartDate() / (24 * 60 * 60 * 1000);
+                long endDays = model.getEndDate() / (24 * 60 * 60 * 1000);
+                return startDays == endDays;
             }
 
             private void setApprovalStatus(TextView view, String status) {

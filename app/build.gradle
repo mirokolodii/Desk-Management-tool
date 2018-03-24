@@ -27,10 +27,10 @@ dependencies {
     compile 'com.android.support:design:27.1.0'
 
     // Firebase Authentication
-    implementation 'com.google.firebase:firebase-auth:12.0.0'
+    implementation 'com.google.firebase:firebase-auth:11.8.0'
 
     // Google Sign In SDK (only required for Google Sign In)
-    implementation 'com.google.android.gms:play-services-auth:12.0.0'
+    implementation 'com.google.android.gms:play-services-auth:11.8.0'
 
     // Picasso library
     implementation 'com.squareup.picasso:picasso:2.71828'
@@ -44,7 +44,7 @@ dependencies {
     // Firebase Database
 //    implementation 'com.google.firebase:firebase-database:11.8.0'
     // Firebase Firestore
-    compile 'com.google.firebase:firebase-firestore:12.0.0'
+    compile 'com.google.firebase:firebase-firestore:11.8.0'
 
     // FirebaseUI for Cloud Firestore
     implementation 'com.firebaseui:firebase-ui-firestore:3.2.2'
