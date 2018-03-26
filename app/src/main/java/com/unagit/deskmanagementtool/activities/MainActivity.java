@@ -180,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //TODO: refactor methods for launching activities to use single method.
     private void launchSignInActivity() {
         Intent signInActivityIntent = new Intent(this, SignInActivity.class);
         startActivity(signInActivityIntent);
