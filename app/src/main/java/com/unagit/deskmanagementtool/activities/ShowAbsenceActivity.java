@@ -1,10 +1,19 @@
 package com.unagit.deskmanagementtool.activities;
 
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
 
@@ -14,21 +23,78 @@ import java.util.Locale;
 
 public class ShowAbsenceActivity extends AppCompatActivity {
 
-    private final static String LOG = "ShowAbsenceActivity";
+    private final static String TAG = "ShowAbsenceActivity";
     Absence absence;
+    String mUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_absence);
 
-        getModel();
+        getIntentExtras();
         updateUI();
     }
 
-    private void getModel() {
+    // Add menu into activity
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_show_absence_menu, menu);
+        return true;
+    }
+
+    // Handle menu items onClick events.
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.edit_menu_button:
+                editAbsence();
+                break;
+            case R.id.delete_menu_button:
+                deleteAbsence();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void editAbsence() {
+
+    }
+
+    private void deleteAbsence() {
+
+        DocumentReference absenceRef = FirebaseFirestore.getInstance()
+                .collection("persons")
+                .document(mUserId)
+                .collection("absences")
+                .document(absence.id);
+        absenceRef.delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+//                        Log.d(TAG, "DocumentSnapshot successfully deleted!");
+                        Toast.makeText(ShowAbsenceActivity.this, "Absence deleted.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error deleting document", e);
+                        Toast.makeText(ShowAbsenceActivity.this, "Failed to delete.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        this.finish();
+    }
+
+
+    private void getIntentExtras() {
         absence = (Absence) this.getIntent().getSerializableExtra(Absence.EXTRA_SERIALIZABLE_OBJECT);
-        Log.d(LOG, absence.getType() + ": " + absence.id);
+//        Log.d(TAG, absence.getType() + ": " + absence.id);
+        mUserId = this.getIntent().getStringExtra(Absence.EXTRA_USER_ID);
     }
 
     private void updateUI() {

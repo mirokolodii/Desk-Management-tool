@@ -111,7 +111,8 @@ public class AbsencesActivity extends AppCompatActivity {
     private void launchShowAbsenceActivity(Absence model) {
         Intent showAbsenceActivityIntent = new Intent(this, ShowAbsenceActivity.class);
         showAbsenceActivityIntent
-                .putExtra(Absence.EXTRA_SERIALIZABLE_OBJECT, model);
+                .putExtra(Absence.EXTRA_SERIALIZABLE_OBJECT, model)
+                .putExtra(Absence.EXTRA_USER_ID, mUserId);
 
 //                .putExtra(Absence.EXTRA_ABSENCE_ID, model.id)
 //                .putExtra(Absence.EXTRA_TYPE, model.getType())

@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/save_menu_button"
-        android:title="@string/save_label"
+
+    <item android:id="@+id/edit_menu_button"
+        android:title="@string/edit_label"
         app:showAsAction="always|withText"/>
+    <item
+        android:id="@+id/delete_menu_button"
+        android:icon="@drawable/ic_delete_black_24dp"
+        app:showAsAction="always"
+        android:title="@string/delete_label"
+        />
 </menu>

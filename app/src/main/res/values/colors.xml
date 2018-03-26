@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="approvedStatus">#4CAF50</color>
     <color name="pendingApprovalStatus">#D32F2F</color>
+    <color name="white">#FFFFFF</color>
 </resources>

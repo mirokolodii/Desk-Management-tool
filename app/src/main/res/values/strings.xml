@@ -1,8 +1,10 @@
 <resources>
-    <string name="app_name">Desk Management tool</string>
+    <string name="app_name">Absence Management tool</string>
     <string name="sign_in_label">Sign In with Google account</string>
     <string name="sign_out_label">Sign Out</string>
     <string name="save_label">Save</string>
+    <string name="edit_label">Edit</string>
+    <string name="delete_label">Delete</string>
     <string name="revoke_access_label">Unlink Account</string>
     <string name="manage_absences_button_label">Manage Absences</string>
     <string name="schedule_button_label">Schedule</string>
