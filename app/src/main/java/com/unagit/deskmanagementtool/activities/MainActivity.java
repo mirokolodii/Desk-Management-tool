@@ -32,12 +32,6 @@ import com.unagit.deskmanagementtool.activities.SignInActivity;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 
-//import com.google.android.gms.tasks.OnCompleteListener;
-//import com.google.android.gms.tasks.Task;
-//import com.google.firebase.firestore.DocumentSnapshot;
-//import com.google.firebase.firestore.FirebaseFirestore;
-//import com.google.firebase.firestore.QuerySnapshot;
-
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -76,11 +70,23 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        initializeListeners();
+
+    }
+
+    private void initializeListeners() {
         // Buttons
         findViewById(R.id.manage_absences_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 launchAbsencesActivity();
+            }
+        });
+
+        findViewById(R.id.schedule_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                launchScheduleActivity();
             }
         });
     }
@@ -183,6 +189,11 @@ public class MainActivity extends AppCompatActivity {
     private void launchAbsencesActivity() {
         Intent signInActivityIntent = new Intent(this, AbsencesActivity.class);
         startActivity(signInActivityIntent);
+    }
+
+    private void launchScheduleActivity() {
+        Intent intent = new Intent(this, ScheduleActivity.class);
+        startActivity(intent);
     }
 
     private void signOut() {
