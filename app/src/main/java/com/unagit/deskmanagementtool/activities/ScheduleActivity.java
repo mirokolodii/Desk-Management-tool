@@ -14,6 +14,8 @@ import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
 import com.unagit.deskmanagementtool.brain.Person;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,7 +94,15 @@ public class ScheduleActivity extends AppCompatActivity {
 
     private void showAbsences() {
         for(Map.Entry<String, Absence> entry : absencesDic.entrySet()) {
-            Log.d(TAG, String.format("Name: %s, absence type: %s", entry.getKey(), entry.getValue().getType()));
+            Absence absence = entry.getValue();
+            Log.d(TAG, String.format("Name: %s, absence type: %s", entry.getKey(), absence.getType()));
+
+            DateTime time = new DateTime(absence.getStartDate());
+            Log.d(TAG, String.format("date: %s, week: %d", time.dayOfMonth().toString(), time.getWeekOfWeekyear()));
+            Log.d(TAG, "______________________");
+
         }
+
+
     }
 }
