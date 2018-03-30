@@ -6,4 +6,5 @@
     <color name="approvedStatus">#4CAF50</color>
     <color name="pendingApprovalStatus">#D32F2F</color>
     <color name="white">#FFFFFF</color>
+    <color name="recycle_view_item_background">#BCAAA4</color>
 </resources>
