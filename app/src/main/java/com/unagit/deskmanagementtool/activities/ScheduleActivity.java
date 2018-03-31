@@ -36,8 +36,6 @@ import java.util.Map;
 public class ScheduleActivity extends AppCompatActivity {
 
     private List<Person> persons = new ArrayList<>();
-//    private Map<String, Absence> absencesDic = new HashMap<>();
-//    private ArrayList<DateTime> mScheduleCalendar;
     private ArrayList<ScheduleItem> mSchedule;
     private FirebaseFirestore db;
     private static final String TAG = "ScheduleActivity";
@@ -48,14 +46,10 @@ public class ScheduleActivity extends AppCompatActivity {
         setContentView(R.layout.activity_schedule);
 
 //        db = FirebaseFirestore.getInstance();
-//        updateUI();
         printScheduleCalendar();
     }
 
-//    private void updateUI() {
-//        getPersons();
-//    }
-//
+
 //    // Get data from firestore.
 //    private void getPersons() {
 //        db.collection("persons").get()
@@ -143,59 +137,55 @@ public class ScheduleActivity extends AppCompatActivity {
         }
     }
 
-
-//    private ArrayList<DateTime> getScheduleCalendar(DateTime scheduleStart,DateTime scheduleEnd) {
-//        ArrayList<DateTime> scheduleCalendar = new ArrayList<>();
-//        while (scheduleStart.isBefore(scheduleEnd)) {
-//            scheduleCalendar.add(scheduleStart);
-//            scheduleStart = scheduleStart.plusDays(1);
-//        }
-//        return scheduleCalendar;
-//    }
-
     private void initializeRecycleView() {
         RecyclerView recyclerView = findViewById(R.id.schedule_recycle_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         RecyclerView.Adapter adapter = new ScheduleRVAdapter();
         recyclerView.setAdapter(adapter);
-
     }
 
-
-
+    /**
+     * Prepares an array of ScheduleItems with dates range from scheduleStart to scheduleEnd.
+     * Loops through all absences and put into ScheduleItem, in case absence is in corresponding date.
+     * @param scheduleStart
+     * @param scheduleEnd
+     * @return
+     */
     private ArrayList<ScheduleItem> getSchedule(DateTime scheduleStart, DateTime scheduleEnd) {
         ArrayList<ScheduleItem> schedule = new ArrayList<>();
-
-
-        while (scheduleStart.isBefore(scheduleEnd)) {
-
-            schedule.add(new ScheduleItem(scheduleStart));
-
-            scheduleStart = scheduleStart.plusDays(1);
-        }
-
         ArrayList<Absence> absences = getAbsences();
-//        ArrayList<DateTime> scheduleDates = getScheduleCalendar(scheduleStart, scheduleEnd);
-        for(Absence absence : absences) {
-            for(ScheduleItem item : schedule) {
 
-                if(isAbsenceInDate(absence, item.getDate())) {
+        // Put items into array
+        while (scheduleStart.isBefore(scheduleEnd)) {
+            ScheduleItem scheduleItem = new ScheduleItem(scheduleStart);
+            schedule.add(scheduleItem);
+            for(Absence absence : absences) {
+                if(isAbsenceInDate(absence, scheduleItem.getDate())) {
                     // Put absence into ScheduleItem
-                    item.addAbsence(absence);
+                    scheduleItem.addAbsence(absence);
                 }
             }
+            scheduleStart = scheduleStart.plusDays(1);
         }
-
         return schedule;
-
     }
 
+    /**
+     * Verifies whether absence is in provided date.
+     * @param absence
+     * @param date
+     * @return true if absence is in date.
+     */
     private boolean isAbsenceInDate(Absence absence, DateTime date) {
         return !date.isBefore(absence.getStartDate()) && !date.isAfter(absence.getEndDate());
     }
 
 
+    /**
+     * Gets example absences.
+     * @return Array of absences.
+     */
     private ArrayList<Absence> getAbsences() {
         ArrayList<Absence> absencesArray = new ArrayList<>();
         absencesArray.add(new Absence(
@@ -216,19 +206,22 @@ public class ScheduleActivity extends AppCompatActivity {
         return absencesArray;
     }
 
+    /**
+     * Adapter for RecycleView.
+     */
     class ScheduleRVAdapter extends RecyclerView.Adapter<ScheduleRVAdapter.ViewHolder> {
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView weekDay;
             TextView month;
             TextView monthDay;
-            LinearLayout layout;
+            LinearLayout absencesLayout;
             ViewHolder(View view) {
                 super(view);
                 weekDay = view.findViewById(R.id.schedule_rv_week_day);
                 month = view.findViewById(R.id.schedule_rv_month);
                 monthDay = view.findViewById(R.id.schedule_rv_month_day);
-                layout = view.findViewById(R.id.absence_layout);
+                absencesLayout = view.findViewById(R.id.absence_layout);
 
             }
         }
@@ -242,26 +235,21 @@ public class ScheduleActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-//            holder.weekDay.setText(mScheduleCalendar.get(position).dayOfWeek().getAsShortText());
-//            holder.monthDay.setText(mScheduleCalendar.get(position).dayOfMonth().getAsText());
-//            holder.month.setText(mScheduleCalendar.get(position).monthOfYear().getAsShortText());
-
             holder.weekDay.setText(
-                    mSchedule.get(position).getDate().dayOfWeek().getAsShortText()
-            );
+                    mSchedule.get(position).getDate().dayOfWeek().getAsShortText());
             holder.monthDay.setText(
-                    mSchedule.get(position).getDate().dayOfMonth().getAsText()
-            );
+                    mSchedule.get(position).getDate().dayOfMonth().getAsText());
             holder.month.setText(
-                    mSchedule.get(position).getDate().monthOfYear().getAsShortText()
-            );
+                    mSchedule.get(position).getDate().monthOfYear().getAsShortText());
 
-            holder.layout.removeAllViews();
+            // Remove possible absences-leftovers.
+            holder.absencesLayout.removeAllViews();
+            // Put absences into view.
             ArrayList<Absence> absences = mSchedule.get(position).getAbsences();
             for(Absence absence : absences) {
                 TextView textView = new TextView(ScheduleActivity.this);
                 textView.setText(absence.getType());
-                holder.layout.addView(textView);
+                holder.absencesLayout.addView(textView);
             }
 
         }
