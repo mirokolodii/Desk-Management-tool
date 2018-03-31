@@ -37,6 +37,7 @@ public class Absence implements Serializable {
     private long endDate;
     private boolean requiredApproval;
     private boolean approved;
+    private String userId;
 
     @Exclude
     public String id;
@@ -47,8 +48,13 @@ public class Absence implements Serializable {
 
     public Absence() {}
 
-    public Absence(String type, long startDate, long endDate, @Nullable String note,  boolean requiredApproval) {
-        this(type, startDate, endDate, note);
+    public Absence(String type,
+                   long startDate,
+                   long endDate,
+                   @Nullable String note,
+                   boolean requiredApproval,
+                   String userId) {
+        this(type, startDate, endDate, note, userId);
         if(requiredApproval) {
             this.requiredApproval = requiredApproval;
             this.approved = false;
@@ -56,22 +62,16 @@ public class Absence implements Serializable {
         }
     }
 
-    private Absence(String type, long startDate, long endDate, @Nullable String note) {
+    private Absence(String type, long startDate, long endDate, @Nullable String note, String userId) {
         this.type = type;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.userId = userId;
         if(note != null) {
             this.note = note;
         }
     }
 
-//    public static String getPendingApprovalLabel() {
-//        return PENDING_APPROVAL_LABEL;
-//    }
-//
-//    public static String getApprovedLabel() {
-//        return APPROVED_LABEL;
-//    }
 
     public String getType() {
         return type;
@@ -104,6 +104,8 @@ public class Absence implements Serializable {
     public Date getTimestamp() {
         return timestamp;
     }
+
+    public String getUserId() { return userId; }
 
 //    public String getId() { return id; }
 //

@@ -161,44 +161,20 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         EditText noteView = findViewById(R.id.absence_note_editText);
         String note = noteView.getText().toString().trim();
 
-        Absence absence = new Absence(absenceType.getName(),
-                mStartDate.getTime(), mEndDate.getTime(), note, absenceType.isRequiredApproval());
-//
-//        Map<String, Object> absence = new HashMap<>();
-//        absence.put("type", absenceType.getName());
-//        absence.put("start_date", startDate.getTime());
-//        absence.put("end_date", endDate.getTime());
-//        if(!note.isEmpty()) {
-//            absence.put("note", note);
-//        }
-//        if(absenceType.isRequiredApproval()) {
-//            absence.put("required_approval", true);
-//            absence.put("is_approved", false);
-//            absence.put("approval_status", "Pending Approval");
-//        }
-
-        /*
-        Create reference to absence document.
-        If we have absence ID (mAbsenceID != null), means that we are updating existing record.
-        Otherwise create a new one.
-         */
-
-        /*
-        CollectionReference absenceColRef = db.collection("persons")
-                .document(mUserId)
-                .collection("absences");
-        */
+        Absence absence = new Absence(
+                absenceType.getName(),
+                mStartDate.getTime(),
+                mEndDate.getTime(),
+                note,
+                absenceType.isRequiredApproval(),
+                mUserId);
 
         DocumentReference absenceRef;
         if(mAbsence != null) {
-            absenceRef = db.collection("persons")
-                    .document(mUserId)
-                    .collection("absences")
+            absenceRef = db.collection("absences")
                     .document(mAbsence.id);
         } else {
-            absenceRef = db.collection("persons")
-                    .document(mUserId)
-                    .collection("absences")
+            absenceRef = db.collection("absences")
                     .document();
         }
 

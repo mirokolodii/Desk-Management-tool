@@ -147,9 +147,8 @@ public class AbsencesActivity extends AppCompatActivity {
 
         // specify an adapter
         Query absencesForUserQuery = FirebaseFirestore.getInstance()
-                .collection("persons")
-                .document(mUserId)
                 .collection("absences")
+                .whereEqualTo("userId", mUserId)
                 .orderBy("timestamp", Query.Direction.DESCENDING);
 
         // Configure recycler adapter options:
