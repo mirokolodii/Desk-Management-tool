@@ -25,4 +25,5 @@ public class ScheduleItem {
     public ArrayList<Absence> getAbsences() {
         return this.absences;
     }
+
 }

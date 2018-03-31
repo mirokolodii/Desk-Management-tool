@@ -54,12 +54,17 @@ public class Absence implements Serializable {
                    @Nullable String note,
                    boolean requiredApproval,
                    String userId) {
+
         this(type, startDate, endDate, note, userId);
+
         if(requiredApproval) {
             this.requiredApproval = requiredApproval;
             this.approved = false;
             this.approvalStatus = PENDING_APPROVAL_LABEL;
+        } else {
+            this.requiredApproval = false;
         }
+
     }
 
     private Absence(String type, long startDate, long endDate, @Nullable String note, String userId) {
@@ -72,6 +77,32 @@ public class Absence implements Serializable {
         }
     }
 
+    @Override
+    public int hashCode() {
+        if(id != null) {
+            return ((Long) startDate).intValue()
+                    + ((Long) endDate).intValue()
+                    + id.hashCode();
+        }
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(id != null) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final Absence other = (Absence) obj;
+            if (id.equals(other.id)) {
+                return true;
+            }
+        }
+        return super.equals(obj);
+    }
 
     public String getType() {
         return type;

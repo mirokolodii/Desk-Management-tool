@@ -1,6 +1,7 @@
 package com.unagit.deskmanagementtool.activities;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,10 +14,13 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
@@ -29,13 +33,15 @@ import org.joda.time.Interval;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ScheduleActivity extends AppCompatActivity {
 
-    private List<Person> persons = new ArrayList<>();
+    private HashSet<Person> mPersons = new HashSet<>();
+    private HashSet<Absence> mAbsences = new HashSet<>();
     private ArrayList<ScheduleItem> mSchedule;
     private FirebaseFirestore db;
     private static final String TAG = "ScheduleActivity";
@@ -45,63 +51,113 @@ public class ScheduleActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_schedule);
 
-//        db = FirebaseFirestore.getInstance();
-        printScheduleCalendar();
+        db = FirebaseFirestore.getInstance();
+        getPersons();
+
+        getAbsences(
+                new DateTime(2018, 4,2, 0, 0),
+                new DateTime(2018, 4,11, 0, 0)
+        );
+
+
     }
 
+    // Get all persons form Firestore.
+    private void getPersons() {
+        db.collection("persons").get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot documentSnapshots) {
+//                        persons = documentSnapshots.toObjects(Person.class);
+//                        Log.d(TAG, "Query: " + documentSnapshots.getDocuments().toString());
+//                        Log.d(TAG, "Documents: " + documentSnapshots.getDocuments().toString());
+//                        Log.d(TAG, "List: " + persons.toString());
 
-//    // Get data from firestore.
-//    private void getPersons() {
-//        db.collection("persons").get()
-//                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-//                    @Override
-//                    public void onSuccess(QuerySnapshot documentSnapshots) {
-////                        persons = documentSnapshots.toObjects(Person.class);
-////                        Log.d(TAG, "Query: " + documentSnapshots.getDocuments().toString());
-////                        Log.d(TAG, "Documents: " + documentSnapshots.getDocuments().toString());
-////                        Log.d(TAG, "List: " + persons.toString());
-//
-//                        for (DocumentSnapshot documentSnapshot : documentSnapshots) {
-//                            Person person = documentSnapshot.toObject(Person.class);
-//                            person.setId(documentSnapshot.getId());
-//                            persons.add(person);
-//
-//                        }
-//                        for (Person person : persons) {
+                        // Add persons into class array field.
+                        for (DocumentSnapshot documentSnapshot : documentSnapshots) {
+                            Person person = documentSnapshot.toObject(Person.class);
+                            person.setId(documentSnapshot.getId());
+                            mPersons.add(person);
+
+                        }
+
+                        // Debug.
+//                        for (Person person : mPersons) {
 //                            Log.d(TAG, String.format("Name: %s; id: %s", person.getName(), person.withId()));
 //                        }
-//
-//                        ScheduleActivity.this.getAbsences();
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        Log.d(TAG, e.getMessage());
-//                    }
-//                });
-//
-//    }
 
-//    private void getAbsences() {
-//        for (final Person person : persons) {
-//            db.collection("persons").document(person.withId()).collection("absences").get()
-//                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-//                        @Override
-//                        public void onSuccess(QuerySnapshot documentSnapshots) {
-//                            for (DocumentSnapshot documentSnapshot : documentSnapshots) {
-//                                absencesDic.put(person.getName(), documentSnapshot.toObject(Absence.class));
-//                            }
-//
-//                            ScheduleActivity.this.showAbsences();
-//                        }
-//
-//
-//                    });
-//
-//        }
-//
-//    }
+                        // We have persons now. Continue with preparing schedule.
+                        ScheduleActivity.this.printScheduleCalendar();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                });
+
+    }
+
+    private void getAbsences(final DateTime start, final DateTime end) {
+
+        Query query = getAbsencesBetweenDatesQuery("startDate", start.getMillis(), end.getMillis());
+        query
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot documentSnapshots) {
+                        updateAbsences(documentSnapshots);
+
+                        Query query = getAbsencesBetweenDatesQuery("endDate", start.getMillis(), end.getMillis());
+                        query
+                                .get()
+                                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onSuccess(QuerySnapshot documentSnapshots) {
+                                        updateAbsences(documentSnapshots);
+
+                                        // Debug
+                                        printAbsences();
+                                    }
+                                })
+                                .addOnFailureListener(getOnFailureListener());
+
+                    }
+                })
+                .addOnFailureListener(getOnFailureListener());
+    }
+
+    private Query getAbsencesBetweenDatesQuery(String dateField, long start, long end) {
+        return db.collection("absences")
+                .whereGreaterThanOrEqualTo(dateField, start)
+                .whereLessThanOrEqualTo(dateField, end);
+    }
+
+    private void updateAbsences(QuerySnapshot documentSnapshots) {
+        for (DocumentSnapshot documentSnapshot : documentSnapshots) {
+            Absence absence = documentSnapshot.toObject(Absence.class);
+            absence.id = (documentSnapshot.getId());
+            mAbsences.add(absence);
+        }
+    }
+
+    private OnFailureListener getOnFailureListener() {
+        return new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(TAG, e.getMessage());
+            }
+        };
+
+    }
+
+    private void printAbsences() {
+        Log.d(TAG, "Absences:");
+        for (Absence absence : mAbsences) {
+            Log.d(TAG, String.format("Start: %d, end: %d, type: %s", absence.getStartDate(), absence.getEndDate(), absence.getType()));
+        }
+    }
 //
 //    private void showAbsences() {
 //        for (Map.Entry<String, Absence> entry : absencesDic.entrySet()) {
@@ -118,23 +174,22 @@ public class ScheduleActivity extends AppCompatActivity {
     private void printScheduleCalendar() {
         DateTime scheduleStart = new DateTime(2018, 2, 12, 0, 0);
         DateTime scheduleEnd = new DateTime(2018, 3, 12, 0, 0);
-//        mScheduleCalendar = getScheduleCalendar(scheduleStart, scheduleEnd);
         mSchedule = getSchedule(scheduleStart, scheduleEnd);
 
         initializeRecycleView();
 
-        for (ScheduleItem item : mSchedule) {
-            Log.d(TAG, String.format("%s-%s-%s",
-                    item.getDate().year().getAsShortText(),
-                    item.getDate().monthOfYear().getAsString(),
-                    item.getDate().dayOfMonth().getAsString())
-            );
-            int i = 0;
-            for(Absence absence : item.getAbsences()) {
-                Log.d(TAG, String.format("Absence %d: %s", ++i, absence.getType()));
-            }
-            Log.d(TAG, "___________________________________");
-        }
+//        for (ScheduleItem item : mSchedule) {
+//            Log.d(TAG, String.format("%s-%s-%s",
+//                    item.getDate().year().getAsShortText(),
+//                    item.getDate().monthOfYear().getAsString(),
+//                    item.getDate().dayOfMonth().getAsString())
+//            );
+//            int i = 0;
+//            for(Absence absence : item.getAbsences()) {
+//                Log.d(TAG, String.format("Absence %d: %s", ++i, absence.getType()));
+//            }
+//            Log.d(TAG, "___________________________________");
+//        }
     }
 
     private void initializeRecycleView() {
@@ -154,18 +209,23 @@ public class ScheduleActivity extends AppCompatActivity {
      */
     private ArrayList<ScheduleItem> getSchedule(DateTime scheduleStart, DateTime scheduleEnd) {
         ArrayList<ScheduleItem> schedule = new ArrayList<>();
-        ArrayList<Absence> absences = getAbsences();
+        HashSet<Absence> absences = getAbsences2();
+
 
         // Put items into array
         while (scheduleStart.isBefore(scheduleEnd)) {
             ScheduleItem scheduleItem = new ScheduleItem(scheduleStart);
             schedule.add(scheduleItem);
+
+            // Put absences into ScheduleItem.
             for(Absence absence : absences) {
                 if(isAbsenceInDate(absence, scheduleItem.getDate())) {
                     // Put absence into ScheduleItem
                     scheduleItem.addAbsence(absence);
                 }
             }
+
+            // Continue with next day.
             scheduleStart = scheduleStart.plusDays(1);
         }
         return schedule;
@@ -186,24 +246,56 @@ public class ScheduleActivity extends AppCompatActivity {
      * Gets example absences.
      * @return Array of absences.
      */
-    private ArrayList<Absence> getAbsences() {
-        ArrayList<Absence> absencesArray = new ArrayList<>();
-        absencesArray.add(new Absence(
+    private HashSet<Absence> getAbsences2() {
+        HashSet<Absence> absences = new HashSet<>();
+        Absence ab1 = new Absence(
                 "Vacation",
                 (new DateTime(2018, 2,14, 0, 0)).getMillis(),
                 (new DateTime(2018, 2,17, 0, 0)).getMillis(),
                 null,
-                false
-        ));
+                false,
+                "sdfdsf"
+        );
+        ab1.id = "123";
 
-        absencesArray.add(new Absence(
+        Absence ab2 = new Absence(
                 "Training",
                 (new DateTime(2018, 2,16, 0, 0)).getMillis(),
                 (new DateTime(2018, 2,19, 0, 0)).getMillis(),
                 null,
-                false
-        ));
-        return absencesArray;
+                false,
+                "jlvHsE9D5bbn1BMhbBrarMxhSsy2"
+        );
+        ab2.id = "123";
+
+
+        Absence ab3 = new Absence(
+                "Training",
+                (new DateTime(2018, 2,16, 0, 0)).getMillis(),
+                (new DateTime(2018, 2,19, 0, 0)).getMillis(),
+                null,
+                false,
+                "jlvHsE9D5bbn1BMhbBrarMxhSsy2"
+        );
+        ab3.id = "1234";
+
+        absences.add(ab1);
+        absences.add(ab2);
+        absences.add(ab3);
+
+//        Log.d(TAG, "absences size: " + String.valueOf(absences.size()));
+
+        return absences;
+    }
+
+    @Nullable
+    private Person getPersonWithId(String id) {
+        for(Person person : mPersons) {
+            if (person.withId().equals(id)) {
+                return person;
+            }
+        }
+        return null;
     }
 
     /**
@@ -247,8 +339,17 @@ public class ScheduleActivity extends AppCompatActivity {
             // Put absences into view.
             ArrayList<Absence> absences = mSchedule.get(position).getAbsences();
             for(Absence absence : absences) {
+//                Log.d(TAG, "Absence.userId: " + absence.getUserId());
+                String text = "";
+                Person person = getPersonWithId(absence.getUserId());
+                if(person != null) {
+                    text += person.getName() + ": ";
+                } else {
+                    text += "unknown user: ";
+                }
+                text += absence.getType();
                 TextView textView = new TextView(ScheduleActivity.this);
-                textView.setText(absence.getType());
+                textView.setText(text);
                 holder.absencesLayout.addView(textView);
             }
 
