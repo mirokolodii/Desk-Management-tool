@@ -28,7 +28,9 @@ import com.unagit.deskmanagementtool.brain.Person;
 import com.unagit.deskmanagementtool.brain.ScheduleItem;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.Interval;
+import org.joda.time.LocalDate;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -45,6 +47,10 @@ public class ScheduleActivity extends AppCompatActivity {
     private ArrayList<ScheduleItem> mSchedule;
     private FirebaseFirestore db;
     private static final String TAG = "ScheduleActivity";
+    private DocumentSnapshot mLastVisibleAbsence;
+    private final static long QUERY_LIMIT = 100;
+    private DateTime mScheduleStart;
+    private DateTime mScheduleEnd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,15 +58,27 @@ public class ScheduleActivity extends AppCompatActivity {
         setContentView(R.layout.activity_schedule);
 
         db = FirebaseFirestore.getInstance();
+        initializeScheduleDates();
         getPersons();
 
-        getAbsences(
-                new DateTime(2018, 4,2, 0, 0),
-                new DateTime(2018, 4,11, 0, 0)
-        );
+//        testAbsenceQuery(
+//                new DateTime(2018, 4,2, 0, 0),
+//                new DateTime(2018, 4,11, 0, 0)
+//        );
 
 
     }
+
+    private void initializeScheduleDates() {
+        DateTime today = new DateTime()
+                .withHourOfDay(0)
+                .withMinuteOfHour(0)
+                .withSecondOfMinute(0)
+                .withMillisOfSecond(0);
+        mScheduleStart = today.minusWeeks(2);
+        mScheduleEnd = today.plusMonths(1);
+    }
+
 
     // Get all persons form Firestore.
     private void getPersons() {
@@ -86,8 +104,9 @@ public class ScheduleActivity extends AppCompatActivity {
 //                            Log.d(TAG, String.format("Name: %s; id: %s", person.getName(), person.withId()));
 //                        }
 
-                        // We have persons now. Continue with preparing schedule.
-                        ScheduleActivity.this.printScheduleCalendar();
+                        // We have persons now. Now we need absences.
+                        getAbsences();
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -96,42 +115,49 @@ public class ScheduleActivity extends AppCompatActivity {
                         Log.e(TAG, e.getMessage());
                     }
                 });
-
     }
 
-    private void getAbsences(final DateTime start, final DateTime end) {
-
-        Query query = getAbsencesBetweenDatesQuery("startDate", start.getMillis(), end.getMillis());
+    private void getAbsences() {
+        Query query = getAbsencesQuery(mScheduleStart.getMillis(), mScheduleEnd.getMillis());
         query
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot documentSnapshots) {
+
+                        // Save last document.
+                        mLastVisibleAbsence = documentSnapshots.getDocuments()
+                                .get(documentSnapshots.size()-1);
+
+                        // Save query results into mAbsences.
                         updateAbsences(documentSnapshots);
+                        // Debug
+                        printAbsences();
 
-                        Query query = getAbsencesBetweenDatesQuery("endDate", start.getMillis(), end.getMillis());
-                        query
-                                .get()
-                                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                    @Override
-                                    public void onSuccess(QuerySnapshot documentSnapshots) {
-                                        updateAbsences(documentSnapshots);
-
-                                        // Debug
-                                        printAbsences();
-                                    }
-                                })
-                                .addOnFailureListener(getOnFailureListener());
+                        // Prepare schedule.
+                        showSchedule();
 
                     }
                 })
                 .addOnFailureListener(getOnFailureListener());
     }
 
-    private Query getAbsencesBetweenDatesQuery(String dateField, long start, long end) {
-        return db.collection("absences")
-                .whereGreaterThanOrEqualTo(dateField, start)
-                .whereLessThanOrEqualTo(dateField, end);
+    private Query getAbsencesQuery(long start, long end) {
+        // First query
+        if(mLastVisibleAbsence == null) {
+            return db.collection("absences")
+                    .whereGreaterThanOrEqualTo("endDate", start)
+                    .orderBy("endDate") /* first orderBy should be on 'where' filter field */
+                    .orderBy("startDate")
+                    .limit(QUERY_LIMIT);
+        } else { // Next query(-ies)
+            return db.collection("absences")
+                    .whereGreaterThanOrEqualTo("endDate", start)
+                    .orderBy("endDate") /* first orderBy should be on 'where' filter field */
+                    .orderBy("startDate")
+                    .startAfter(mLastVisibleAbsence)
+                    .limit(QUERY_LIMIT);
+        }
     }
 
     private void updateAbsences(QuerySnapshot documentSnapshots) {
@@ -141,6 +167,70 @@ public class ScheduleActivity extends AppCompatActivity {
             mAbsences.add(absence);
         }
     }
+
+
+    private void showSchedule() {
+        DateTime scheduleStart = mScheduleStart;
+        DateTime scheduleEnd = mScheduleEnd;
+        mSchedule = getSchedule(scheduleStart, scheduleEnd);
+
+        initializeRecycleView();
+
+//        for (ScheduleItem item : mSchedule) {
+//            Log.d(TAG, String.format("%s-%s-%s",
+//                    item.getDate().year().getAsShortText(),
+//                    item.getDate().monthOfYear().getAsString(),
+//                    item.getDate().dayOfMonth().getAsString())
+//            );
+//            int i = 0;
+//            for(Absence absence : item.getAbsences()) {
+//                Log.d(TAG, String.format("Absence %d: %s", ++i, absence.getType()));
+//            }
+//            Log.d(TAG, "___________________________________");
+//        }
+    }
+
+    /**
+     * Prepares an array of ScheduleItems with dates range from scheduleStart to scheduleEnd.
+     * Loops through all absences and put into ScheduleItem, in case absence is in corresponding date.
+     * @param scheduleStart
+     * @param scheduleEnd
+     * @return
+     */
+    private ArrayList<ScheduleItem> getSchedule(DateTime scheduleStart, DateTime scheduleEnd) {
+        ArrayList<ScheduleItem> schedule = new ArrayList<>();
+        // Put items into array
+        while (scheduleStart.isBefore(scheduleEnd)) {
+            ScheduleItem scheduleItem = new ScheduleItem(scheduleStart);
+            schedule.add(scheduleItem);
+            // Put absences into ScheduleItem.
+            for(Absence absence : mAbsences) {
+                if(isAbsenceInDate(absence, scheduleItem.getDate())) {
+                    scheduleItem.addAbsence(absence);
+                }
+            }
+            // Continue with next day. If current is Friday, skip weekend and jump to Monday.
+            int jump;
+            if(scheduleStart.getDayOfWeek() == DateTimeConstants.FRIDAY) {
+                jump = 3;
+            } else {
+                jump = 1;
+            }
+            scheduleStart = scheduleStart.plusDays(jump);
+        }
+        return schedule;
+    }
+
+
+    private void initializeRecycleView() {
+        RecyclerView recyclerView = findViewById(R.id.schedule_recycle_view);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        RecyclerView.Adapter adapter = new ScheduleRVAdapter();
+        recyclerView.setAdapter(adapter);
+    }
+
+
 
     private OnFailureListener getOnFailureListener() {
         return new OnFailureListener() {
@@ -171,65 +261,7 @@ public class ScheduleActivity extends AppCompatActivity {
 //    }
 
 
-    private void printScheduleCalendar() {
-        DateTime scheduleStart = new DateTime(2018, 2, 12, 0, 0);
-        DateTime scheduleEnd = new DateTime(2018, 3, 12, 0, 0);
-        mSchedule = getSchedule(scheduleStart, scheduleEnd);
 
-        initializeRecycleView();
-
-//        for (ScheduleItem item : mSchedule) {
-//            Log.d(TAG, String.format("%s-%s-%s",
-//                    item.getDate().year().getAsShortText(),
-//                    item.getDate().monthOfYear().getAsString(),
-//                    item.getDate().dayOfMonth().getAsString())
-//            );
-//            int i = 0;
-//            for(Absence absence : item.getAbsences()) {
-//                Log.d(TAG, String.format("Absence %d: %s", ++i, absence.getType()));
-//            }
-//            Log.d(TAG, "___________________________________");
-//        }
-    }
-
-    private void initializeRecycleView() {
-        RecyclerView recyclerView = findViewById(R.id.schedule_recycle_view);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-        RecyclerView.Adapter adapter = new ScheduleRVAdapter();
-        recyclerView.setAdapter(adapter);
-    }
-
-    /**
-     * Prepares an array of ScheduleItems with dates range from scheduleStart to scheduleEnd.
-     * Loops through all absences and put into ScheduleItem, in case absence is in corresponding date.
-     * @param scheduleStart
-     * @param scheduleEnd
-     * @return
-     */
-    private ArrayList<ScheduleItem> getSchedule(DateTime scheduleStart, DateTime scheduleEnd) {
-        ArrayList<ScheduleItem> schedule = new ArrayList<>();
-        HashSet<Absence> absences = getAbsences2();
-
-
-        // Put items into array
-        while (scheduleStart.isBefore(scheduleEnd)) {
-            ScheduleItem scheduleItem = new ScheduleItem(scheduleStart);
-            schedule.add(scheduleItem);
-
-            // Put absences into ScheduleItem.
-            for(Absence absence : absences) {
-                if(isAbsenceInDate(absence, scheduleItem.getDate())) {
-                    // Put absence into ScheduleItem
-                    scheduleItem.addAbsence(absence);
-                }
-            }
-
-            // Continue with next day.
-            scheduleStart = scheduleStart.plusDays(1);
-        }
-        return schedule;
-    }
 
     /**
      * Verifies whether absence is in provided date.
@@ -238,7 +270,8 @@ public class ScheduleActivity extends AppCompatActivity {
      * @return true if absence is in date.
      */
     private boolean isAbsenceInDate(Absence absence, DateTime date) {
-        return !date.isBefore(absence.getStartDate()) && !date.isAfter(absence.getEndDate());
+        Log.d(TAG, String.format("Absence: %s. Date: %d, absence.start: %d, absence.end: %d", absence.getType(), date.getMillis(), absence.getStartDate(), absence.getEndDate()));
+        return !date.plusDays(1).isBefore(absence.getStartDate()) && !date.isAfter(absence.getEndDate());
     }
 
 
@@ -320,7 +353,6 @@ public class ScheduleActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-//            return mScheduleCalendar.size();
             return mSchedule.size();
         }
 
@@ -364,5 +396,3 @@ public class ScheduleActivity extends AppCompatActivity {
         }
     }
 }
-
-
