@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -55,8 +56,8 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     private final static String TAG = "AddAbsenceActivity";
 
     // Intent extras.
-    public final static String EXTRA_USER_ID = "uId";
-    public final static String EXTRA_ABSENCE = "absence";
+//    public final static String EXTRA_USER_ID = "uId";
+//    public final static String EXTRA_ABSENCE = "absence";
 
     private final static String START_DATE_TAG = "startDatePicker";
     private final static String END_DATE_TAG = "endDatePicker";
@@ -99,22 +100,22 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
      * If not available, it means that we create new absence (auto-generated ID will be used).
      */
     private void getIntentData() {
-        String uid = getIntent().getStringExtra(EXTRA_USER_ID);
-        if(uid == null) {
+//        Absence absence = (Absence) getIntent().getSerializableExtra(EXTRA_ABSENCE);
+        mAbsence = (Absence) this.getIntent().getSerializableExtra(Absence.EXTRA_SERIALIZABLE_OBJECT);
+        if(mAbsence != null) {
+//            Log.d(TAG, "Absence is not null");
+//            mAbsence = absence;
+            mUserId = mAbsence.getUserId();
+        } else {
+//            Log.d(TAG, "Absence is null");
             // Check if user is signed in (non-null) and update UI accordingly.
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if(user == null) {
                 // Redirect to login activity.
                 launchSignInActivity();
             } else {
-                uid = user.getUid();
+                mUserId = user.getUid();
             }
-        }
-        mUserId  = uid;
-
-        Absence absence = (Absence) getIntent().getSerializableExtra(EXTRA_ABSENCE);
-        if(absence != null) {
-            mAbsence = absence;
         }
     }
 
@@ -259,7 +260,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
         if(mAbsence != null) {
             String savedType = mAbsence.getType();
             for(int i=0; i < absenceTypes.size(); i++) {
-                if (savedType == absenceTypes.get(i).getName()) {
+                if (savedType.equals(absenceTypes.get(i).getName())) {
                     return i;
                 }
             }
@@ -322,6 +323,7 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
 
         if(START_DATE_TAG.equals(fragment.getTag())) {
             setDateInEditText(DateEditText.startDateEditText, datePickerDate);
+            setDateInEditText(DateEditText.endDateEditText, datePickerDate);
 
         } else if (END_DATE_TAG.equals(fragment.getTag())) {
             setDateInEditText(DateEditText.endDateEditText, datePickerDate);
@@ -417,7 +419,12 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
             int day = c.get(Calendar.DAY_OF_MONTH);
 
             // Create a new instance of DatePickerDialog and return it
-            return new DatePickerDialog(getActivity(), listener, year, month, day);
+            DatePickerDialog dialog = new DatePickerDialog(getActivity(), listener, year, month, day);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                dialog.getDatePicker().setFirstDayOfWeek(Calendar.MONDAY);
+            }
+
+            return dialog;
         }
 
         private Date getDate() {

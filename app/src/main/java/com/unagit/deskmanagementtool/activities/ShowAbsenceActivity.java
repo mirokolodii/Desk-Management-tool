@@ -1,5 +1,6 @@
 package com.unagit.deskmanagementtool.activities;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,7 +25,7 @@ import java.util.Locale;
 public class ShowAbsenceActivity extends AppCompatActivity {
 
     private final static String TAG = "ShowAbsenceActivity";
-    Absence absence;
+    Absence mAbsence;
 //    String mUserId;
 
     @Override
@@ -61,6 +62,11 @@ public class ShowAbsenceActivity extends AppCompatActivity {
     }
 
     private void editAbsence() {
+        Intent addAbsenceActivityIntent = new Intent(this, AddAbsenceActivity.class);
+        addAbsenceActivityIntent
+                .putExtra(Absence.EXTRA_SERIALIZABLE_OBJECT, mAbsence);
+        startActivity(addAbsenceActivityIntent);
+        this.finish();
 
     }
 
@@ -68,7 +74,7 @@ public class ShowAbsenceActivity extends AppCompatActivity {
 
         DocumentReference absenceRef = FirebaseFirestore.getInstance()
                 .collection("absences")
-                .document(absence.id);
+                .document(mAbsence.id);
         absenceRef.delete()
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -90,16 +96,16 @@ public class ShowAbsenceActivity extends AppCompatActivity {
 
 
     private void getIntentExtras() {
-        absence = (Absence) this.getIntent().getSerializableExtra(Absence.EXTRA_SERIALIZABLE_OBJECT);
+        mAbsence = (Absence) this.getIntent().getSerializableExtra(Absence.EXTRA_SERIALIZABLE_OBJECT);
 //        Log.d(TAG, absence.getType() + ": " + absence.id);
 //        mUserId = this.getIntent().getStringExtra(Absence.EXTRA_USER_ID);
     }
 
     private void updateUI() {
-        ((TextView) findViewById(R.id.show_absence_type)).setText(absence.getType());
+        ((TextView) findViewById(R.id.show_absence_type)).setText(mAbsence.getType());
 
-        Date start = new Date(absence.getStartDate());
-        Date end = new Date(absence.getEndDate());
+        Date start = new Date(mAbsence.getStartDate());
+        Date end = new Date(mAbsence.getEndDate());
         SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd", Locale.getDefault()); /* Tue, Jan 12 */
         String startDate = format.format(start);
         String endDate = format.format(end);
@@ -107,9 +113,9 @@ public class ShowAbsenceActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.show_absence_end_date)).setText(endDate);
 
         TextView approvalStatusView = findViewById(R.id.show_absence_approval_status);
-        if(absence.getApprovalStatus() != null) {
-            approvalStatusView.setText(absence.getApprovalStatus());
-            if(absence.getApprovalStatus().equals(Absence.PENDING_APPROVAL_LABEL)) {
+        if(mAbsence.getApprovalStatus() != null) {
+            approvalStatusView.setText(mAbsence.getApprovalStatus());
+            if(mAbsence.getApprovalStatus().equals(Absence.PENDING_APPROVAL_LABEL)) {
                 approvalStatusView.setTextColor(getResources().getColor(R.color.pendingApprovalStatus));
             } else {
                 approvalStatusView.setTextColor(getResources().getColor(R.color.approvedStatus));
@@ -121,12 +127,12 @@ public class ShowAbsenceActivity extends AppCompatActivity {
 
         TextView noteView = findViewById(R.id.show_absence_note);
         noteView.setText(
-                absence.getNote() != null
-                ? absence.getNote() : "" );
+                mAbsence.getNote() != null
+                ? mAbsence.getNote() : "" );
 
         TextView timestampView = findViewById(R.id.show_absence_timestamp);
         format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-        String timestamp = format.format(absence.getTimestamp());
+        String timestamp = format.format(mAbsence.getTimestamp());
         timestampView.setText(timestamp);
     }
 }
