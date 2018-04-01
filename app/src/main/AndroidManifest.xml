@@ -35,6 +35,12 @@
             android:name=".activities.AddAbsenceActivity"
             android:label="@string/title_activity_add_absence"
             android:parentActivityName=".activities.AbsencesActivity" />
+
+        <activity
+            android:name=".activities.ShowAbsenceActivity"
+            android:label="@string/title_activity_show_absence"
+            android:parentActivityName=".activities.AbsencesActivity" />
+
         <activity android:name=".activities.ScheduleActivity">
 
             <!--<intent-filter>-->

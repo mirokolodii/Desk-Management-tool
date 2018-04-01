@@ -25,7 +25,7 @@ public class ShowAbsenceActivity extends AppCompatActivity {
 
     private final static String TAG = "ShowAbsenceActivity";
     Absence absence;
-    String mUserId;
+//    String mUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +67,6 @@ public class ShowAbsenceActivity extends AppCompatActivity {
     private void deleteAbsence() {
 
         DocumentReference absenceRef = FirebaseFirestore.getInstance()
-                .collection("persons")
-                .document(mUserId)
                 .collection("absences")
                 .document(absence.id);
         absenceRef.delete()
@@ -94,7 +92,7 @@ public class ShowAbsenceActivity extends AppCompatActivity {
     private void getIntentExtras() {
         absence = (Absence) this.getIntent().getSerializableExtra(Absence.EXTRA_SERIALIZABLE_OBJECT);
 //        Log.d(TAG, absence.getType() + ": " + absence.id);
-        mUserId = this.getIntent().getStringExtra(Absence.EXTRA_USER_ID);
+//        mUserId = this.getIntent().getStringExtra(Absence.EXTRA_USER_ID);
     }
 
     private void updateUI() {

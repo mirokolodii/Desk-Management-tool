@@ -9,6 +9,7 @@
     <string name="manage_absences_button_label">Manage Absences</string>
     <string name="schedule_button_label">Schedule</string>
     <string name="title_activity_add_absence">New Absence</string>
+    <string name="title_activity_show_absence">Absence</string>
     <string name="absence_type_label">Type of absence</string>
     <string name="start_date_label">Start</string>
     <string name="end_date_label">End</string>
