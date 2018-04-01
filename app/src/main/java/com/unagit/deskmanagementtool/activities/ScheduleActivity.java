@@ -51,6 +51,8 @@ public class ScheduleActivity extends AppCompatActivity {
     private final static long QUERY_LIMIT = 100;
     private DateTime mScheduleStart;
     private DateTime mScheduleEnd;
+    private DateTime mToday;
+    private final static int SCROLL_POSITION = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,13 +72,13 @@ public class ScheduleActivity extends AppCompatActivity {
     }
 
     private void initializeScheduleDates() {
-        DateTime today = new DateTime()
+        mToday = new DateTime()
                 .withHourOfDay(0)
                 .withMinuteOfHour(0)
                 .withSecondOfMinute(0)
                 .withMillisOfSecond(0);
-        mScheduleStart = today.minusWeeks(2);
-        mScheduleEnd = today.plusMonths(1);
+        mScheduleStart = mToday.minusWeeks(2);
+        mScheduleEnd = mToday.plusMonths(1);
     }
 
 
@@ -228,6 +230,7 @@ public class ScheduleActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         RecyclerView.Adapter adapter = new ScheduleRVAdapter();
         recyclerView.setAdapter(adapter);
+        recyclerView.scrollToPosition(SCROLL_POSITION);
     }
 
 
@@ -359,12 +362,23 @@ public class ScheduleActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
+            ScheduleItem item = mSchedule.get(position);
             holder.weekDay.setText(
-                    mSchedule.get(position).getDate().dayOfWeek().getAsShortText());
+                    item.getDate().dayOfWeek().getAsShortText());
             holder.monthDay.setText(
-                    mSchedule.get(position).getDate().dayOfMonth().getAsText());
+                    item.getDate().dayOfMonth().getAsText());
             holder.month.setText(
-                    mSchedule.get(position).getDate().monthOfYear().getAsShortText());
+                    item.getDate().monthOfYear().getAsShortText());
+
+            if(item.getDate().isEqual(mToday)) {
+                holder.absencesLayout.setBackgroundColor(
+                        getResources().getColor(R.color.recycle_view_item_background_today));
+
+            } else {
+                holder.absencesLayout.setBackgroundColor(
+                        getResources().getColor(R.color.recycle_view_item_background));
+            }
+
 
             // Remove possible absences-leftovers.
             holder.absencesLayout.removeAllViews();
