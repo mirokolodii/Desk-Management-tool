@@ -70,5 +70,40 @@
         app:layout_constraintStart_toStartOf="@+id/manage_absences_button"
         app:layout_constraintTop_toBottomOf="@+id/manage_absences_button" />
 
+    <Button
+        android:id="@+id/persons_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/list_persons_button_label"
+        app:layout_constraintEnd_toEndOf="@+id/manage_absences_button"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/manage_absences_button"
+        app:layout_constraintTop_toBottomOf="@+id/schedule_button" />
+
+    <Button
+        android:id="@+id/approvals_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/list_pending_approvals_button_label"
+        app:layout_constraintEnd_toEndOf="@+id/manage_absences_button"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/manage_absences_button"
+        app:layout_constraintTop_toBottomOf="@+id/persons_button" />
+
+    <Button
+        android:id="@+id/pending_accounts_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/list_pending_verification_accounts_button_label"
+        app:layout_constraintEnd_toEndOf="@+id/manage_absences_button"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/manage_absences_button"
+        app:layout_constraintTop_toBottomOf="@+id/approvals_button" />
 
 </android.support.constraint.ConstraintLayout>

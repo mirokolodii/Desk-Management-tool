@@ -8,6 +8,9 @@
     <string name="revoke_access_label">Unlink Account</string>
     <string name="manage_absences_button_label">Manage Absences</string>
     <string name="schedule_button_label">Schedule</string>
+    <string name="list_persons_button_label">Persons</string>
+    <string name="list_pending_approvals_button_label">Approvals</string>
+    <string name="list_pending_verification_accounts_button_label">New Accounts</string>
     <string name="title_activity_add_absence">New Absence</string>
     <string name="title_activity_show_absence">Absence</string>
     <string name="absence_type_label">Type of absence</string>

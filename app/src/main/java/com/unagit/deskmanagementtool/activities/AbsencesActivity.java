@@ -126,6 +126,7 @@ public class AbsencesActivity extends AppCompatActivity {
     }
 
 
+
     private void prepareRecycleView() {
         // RecycleView
         RecyclerView mRecyclerView = findViewById(R.id.absences_recycle_view);
@@ -168,6 +169,8 @@ public class AbsencesActivity extends AppCompatActivity {
                 .build();
 
 
+
+
         class AbsenceHolder extends RecyclerView.ViewHolder {
             TextView type;
             TextView dates;
@@ -183,8 +186,6 @@ public class AbsencesActivity extends AppCompatActivity {
                 view = v;
             }
         }
-
-
 
         adapter = new FirestoreRecyclerAdapter<Absence, AbsenceHolder>(options) {
 
@@ -206,6 +207,8 @@ public class AbsencesActivity extends AppCompatActivity {
                 });
 
             }
+
+
 
             @Override
             public AbsenceHolder onCreateViewHolder(ViewGroup group, int i) {
@@ -259,58 +262,8 @@ public class AbsencesActivity extends AppCompatActivity {
             }
         };
 
-
-
-
         // Set adapter for RecycleView
         mRecyclerView.setAdapter(adapter);
 
-
     }
-
-
-
-
-//    /**
-//     * Gets absences for user with id == mUserId from db
-//     * and populate them into RecycleView.
-//     */
-//    private void getAbsences() {
-//
-//        final ArrayList<Absence> absences = new ArrayList<>();
-//        // Firebase
-//
-//        Query absencesForUserQuery = FirebaseFirestore.getInstance()
-//                .collection("persons")
-//                .document(mUserId)
-//                .collection("absences")
-//                .orderBy("timestamp");
-//
-////        FirebaseFirestore db = FirebaseFirestore.getInstance();
-////        CollectionReference absencesColRef = db.collection("persons").document(mUserId).collection("absences");
-////        absencesColRef
-//
-//        absencesForUserQuery
-//                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-//                    int i = 0;
-//                    public void onEvent(@Nullable QuerySnapshot snapshot,
-//                                        @Nullable FirebaseFirestoreException e) {
-//                        if (e != null) {
-//                            // Handle error
-//                            //...
-//                            return;
-//                        }
-//
-//                        // Convert query snapshot to a list of chats
-//
-//                        for (DocumentSnapshot document : snapshot) {
-//                            Absence absence = document.toObject(Absence.class);
-//                            absences.add(absence);
-//                            Log.d("AbsencesActivity", String.format("%d: Absence: %s", i++, absence.getType()));
-//                        }
-//                    }
-//                });
-//    }
-
-
 }
