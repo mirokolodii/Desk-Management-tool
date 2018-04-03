@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -15,13 +16,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.unagit.deskmanagementtool.Helpers;
 import com.unagit.deskmanagementtool.R;
+import com.unagit.deskmanagementtool.brain.Person;
 
 public class SignInActivity extends AppCompatActivity {
 
@@ -70,7 +77,7 @@ public class SignInActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null) {
-            launchMainActivity();
+            verifyIsAuthorizedUser(currentUser);
         }
 
 //        // Check for existing Google Sign In account, if the user is already signed in
@@ -81,14 +88,70 @@ public class SignInActivity extends AppCompatActivity {
 //        }
     }
 
-    /*
-    Start MainActivity and close this activity, so it is removed from activity chain.
+    /**
+     * Verifies whether user is authorized for accessing the Firestore.
+     * If yes, launches MainActivity.
+     * If no, creates new account.
      */
-    private void launchMainActivity() {
-        Intent mainActivityIntent = new Intent(this, MainActivity.class);
-        startActivity(mainActivityIntent);
-        finish();
+    private void verifyIsAuthorizedUser(final FirebaseUser user) {
+        FirebaseFirestore.getInstance()
+                .collection("persons")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(documentSnapshot != null && documentSnapshot.exists()) {
+                            Helpers.launchActivity(SignInActivity.this, MainActivity.class);
+                            finish();
+                        } else {
+                            addNewAccount(user);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(SignInActivity.this, "Failed to verify account.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
+
+
+    /**
+     * Creates new account and launches AccountPendingVerificationActivity.
+     */
+    private void addNewAccount(FirebaseUser user) {
+        Person person = new Person(user.getDisplayName(), user.getEmail());
+        FirebaseFirestore.getInstance()
+                .collection("new_accounts")
+                .document(user.getUid())
+                .set(person)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Helpers.launchActivity(SignInActivity.this, AccountPendingVerificationActivity.class);
+                        finish();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(SignInActivity.this, "Failed to create new account.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+//
+//
+//    /*
+//    Start MainActivity and close this activity, so it is removed from activity chain.
+//     */
+//    private void launchMainActivity() {
+//        Intent mainActivityIntent = new Intent(this, MainActivity.class);
+//        startActivity(mainActivityIntent);
+//        finish();
+//    }
 
     /**
      * Sign in with Google account.
@@ -153,7 +216,7 @@ public class SignInActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
 //                            updateUI(user);
                             Log.d(TAG, "Signed in user: " + user.getDisplayName());
-                            launchMainActivity();
+                            verifyIsAuthorizedUser(user);
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
