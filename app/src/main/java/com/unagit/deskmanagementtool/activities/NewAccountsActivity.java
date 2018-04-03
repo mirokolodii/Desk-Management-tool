@@ -24,13 +24,18 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.SetOptions;
+import com.unagit.deskmanagementtool.Helpers;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
+import com.unagit.deskmanagementtool.brain.Person;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * This class lists all new accounts, which are pending verification.
+ */
 public class NewAccountsActivity extends AppCompatActivity {
 
     // Firestore userId.
@@ -48,57 +53,59 @@ public class NewAccountsActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (isLoggedInUser()) {
+        mUserId = Helpers.getLoggedInFirebaseUser();
+        if (mUserId != null) {
             prepareRecycleView();
-            enableListeningForAdapter(true);
+            Helpers.enableListeningForAdapter(true, adapter);
         } else {
-            launchSignInActivity();
+//            launchSignInActivity();
+            Helpers.launchActivity(this, SignInActivity.class);
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        enableListeningForAdapter(false);
+        Helpers.enableListeningForAdapter(false, adapter);
     }
 
 
-    /**
-     *  Verifies that user is logged into the Firebase.
-     *  Saves user ID.
-     */
-    private boolean isLoggedInUser() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user == null) {
-            return false;
-        }
-        mUserId = user.getUid();
-        return true;
-    }
+//    /**
+//     *  Verifies that user is logged into the Firebase.
+//     *  Saves user ID.
+//     */
+//    private boolean isLoggedInUser() {
+//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//        if(user == null) {
+//            return false;
+//        }
+//        mUserId = user.getUid();
+//        return true;
+//    }
 
-    /**
-     * In case user is not logged in, redirect to SignInActivity.
-     */
-    private void launchSignInActivity() {
-        Intent signInActivityIntent = new Intent(this, SignInActivity.class);
-        signInActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(signInActivityIntent);
-        this.finish();
-    }
+//    /**
+//     * In case user is not logged in, redirect to SignInActivity.
+//     */
+//    private void launchSignInActivity() {
+//        Intent signInActivityIntent = new Intent(this, SignInActivity.class);
+//        signInActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        startActivity(signInActivityIntent);
+//        finish();
+//    }
 
-    /**
-     * Changes listening state of adapter.
-     * @param enable if true - start listening, otherwise - stop listening.
-     */
-    private void enableListeningForAdapter(boolean enable) {
-        if(adapter != null) {
-            if(enable) {
-                adapter.startListening();
-            } else {
-                adapter.stopListening();
-            }
-        }
-    }
+//    /**
+//     * Changes listening state of adapter.
+//     * @param enable if true - start listening, otherwise - stop listening.
+//     */
+//    private void enableListeningForAdapter(boolean enable) {
+//        if(adapter != null) {
+//            if(enable) {
+//                adapter.startListening();
+//            } else {
+//                adapter.stopListening();
+//            }
+//        }
+//    }
 
     /**
      * Prepares RecycleView to work with data from Firestore.
@@ -108,7 +115,7 @@ public class NewAccountsActivity extends AppCompatActivity {
      */
     private void prepareRecycleView() {
         // RecycleView
-        RecyclerView mRecyclerView = findViewById(R.id.pending_approval_absences_recycle_view);
+        RecyclerView mRecyclerView = findViewById(R.id.new_accounts_recycle_view);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -126,102 +133,65 @@ public class NewAccountsActivity extends AppCompatActivity {
 
 
         // Query for Firestore.
-        Query absencesForUserQuery = FirebaseFirestore.getInstance()
-                .collection("absences")
-                .whereEqualTo("isRequiredApproval", true)
-                .whereEqualTo("isApproved", false)
+        Query newAccountsQuery = FirebaseFirestore.getInstance()
+                .collection("new_accounts")
                 .orderBy("timestamp", Query.Direction.ASCENDING);
 
         // Configure recycler adapter options:
         //  * query is the Query object defined above.
-        //  * Absence.class instructs the adapter to convert each DocumentSnapshot to an Absence object
-        FirestoreRecyclerOptions<Absence> options = new FirestoreRecyclerOptions.Builder<Absence>()
+        //  * Person.class instructs the adapter to convert each DocumentSnapshot to a Person object
+        FirestoreRecyclerOptions<Person> options = new FirestoreRecyclerOptions.Builder<Person>()
 //                .setQuery(absencesForUserQuery, Absence.class)
-                .setQuery(absencesForUserQuery, new SnapshotParser<Absence>() {
+                .setQuery(newAccountsQuery, new SnapshotParser<Person>() {
                     @NonNull
                     @Override
-                    public Absence parseSnapshot(@NonNull DocumentSnapshot snapshot) {
-                        Absence absence = snapshot.toObject(Absence.class);
-                        absence.id = snapshot.getId();
-                        return absence;
+                    public Person parseSnapshot(@NonNull DocumentSnapshot snapshot) {
+                        Person person = snapshot.toObject(Person.class);
+                        person.setId(snapshot.getId());
+                        return person;
                     }
                 })
                 .build();
 
-        class AbsenceHolder extends RecyclerView.ViewHolder {
-            TextView type;
-            TextView dates;
-            Button approveButton;
+        class PersonHolder extends RecyclerView.ViewHolder {
+            TextView name;
+            TextView email;
+            TextView date;
 
-            AbsenceHolder(View v) {
+            PersonHolder(View v) {
                 super(v);
 
-                type = v.findViewById(R.id.type_recycle_view_single_item_textView);
-                dates = v.findViewById(R.id.dates_recycle_view_single_item_textView);
-                approveButton = v.findViewById(R.id.approval_status_recycle_view_single_item_textView);
+                name = v.findViewById(R.id.person_name_recycle_view_item_textView);
+                email = v.findViewById(R.id.person_email_recycle_view_item_textView);
+                date = v.findViewById(R.id.person_date_recycle_view_item_textView);
             }
         }
 
-        adapter = new FirestoreRecyclerAdapter<Absence, AbsenceHolder>(options) {
+        adapter = new FirestoreRecyclerAdapter<Person, PersonHolder>(options) {
 
             @Override
-            public void onBindViewHolder(AbsenceHolder holder, int position, final Absence model) {
-                Log.d("AbsencesActivity", "onBindViewHolder triggered with " + model.getType());
-                // Bind the Chat object to the ChatHolder
-                holder.type.setText(model.getType());
-                holder.dates.setText(getDatesString(model));
-
-                holder.approveButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        approveAbsence(model);
-                    }
-                });
+            public void onBindViewHolder(PersonHolder holder, int position, final Person person) {
+                // Bind the Person object to the PersonHolder
+                holder.name.setText(person.getName());
+                holder.email.setText(person.getEmail());
+                holder.date.setText(getDateString(person.getTimestamp()));
             }
 
             @Override
-            public AbsenceHolder onCreateViewHolder(ViewGroup group, int i) {
+            public PersonHolder onCreateViewHolder(ViewGroup group, int i) {
                 // Create a new instance of the ViewHolder, in this case we are using a custom
-                // layout called R.layout.message for each item
-                Log.d("AbsencesActivity", "onCreateViewHolder triggered.");
+                // layout called R.layout.content_new_accounts_recycle_view_item for each item
                 View view = LayoutInflater.from(group.getContext())
-                        .inflate(R.layout.pending_approval_absences_recycle_view_item, group, false);
-                return new AbsenceHolder(view);
+                        .inflate(R.layout.content_new_accounts_recycle_view_item, group, false);
+                return new PersonHolder(view);
             }
 
             /**
-             * Prepares a text string from start and end dates.
-             * @param model Absence instance, from which we can get start and end dates.
-             * @return string of dates in specified format.
+             * Prepares a text string date.
              */
-            private String getDatesString(Absence model) {
-                Date start = new Date(model.getStartDate());
-                Date end = new Date(model.getEndDate());
-
-                SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd", Locale.getDefault()); /* Tue, Jan 12 */
-                String datesString = format.format(start);
-                if(!oneDayAbsence(model)) {
-                    datesString += " - " + format.format(end);
-                }
-                return datesString;
-            }
-
-            /**
-             * Returns true, if it's an one-day absence.
-             * @param model absence.
-             * @return
-             */
-            private boolean oneDayAbsence(Absence model) {
-                long startDays = model.getStartDate() / (24 * 60 * 60 * 1000);
-                long endDays = model.getEndDate() / (24 * 60 * 60 * 1000);
-                return startDays == endDays;
-            }
-
-            private void approveAbsence(Absence absence) {
-                absence.approve();
-                DocumentReference docRef = FirebaseFirestore.getInstance()
-                        .document("absences");
-                docRef.set(absence, SetOptions.merge());
+            private String getDateString(Date date) {
+                SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd, hh:mm", Locale.getDefault()); /* Tue, Jan 12, 12:23 */
+                return format.format(date);
             }
         };
 

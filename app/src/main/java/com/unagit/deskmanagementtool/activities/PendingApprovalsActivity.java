@@ -190,7 +190,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                 // layout called R.layout.message for each item
                 Log.d("AbsencesActivity", "onCreateViewHolder triggered.");
                 View view = LayoutInflater.from(group.getContext())
-                        .inflate(R.layout.pending_approval_absences_recycle_view_item, group, false);
+                        .inflate(R.layout.content_pending_approval_absences_recycle_view_item, group, false);
                 return new AbsenceHolder(view);
             }
 
