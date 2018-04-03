@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private boolean verifyIsAdmin() {
+    private void verifyIsAdmin() {
         String userId = Helpers.getLoggedInFirebaseUser();
         if(userId != null) {
             FirebaseFirestore.getInstance()
@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        updateUI(mAuth.getCurrentUser());
+                        Toast.makeText(MainActivity.this, "You have been signed off.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        updateUI(mAuth.getCurrentUser());
+                        Toast.makeText(MainActivity.this, "Account is unlinked.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
