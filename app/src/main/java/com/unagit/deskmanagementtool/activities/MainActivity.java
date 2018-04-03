@@ -23,12 +23,18 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.squareup.picasso.Picasso;
+import com.unagit.deskmanagementtool.Helpers;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.activities.SignInActivity;
+import com.unagit.deskmanagementtool.brain.Person;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 
@@ -134,6 +140,8 @@ public class MainActivity extends AppCompatActivity {
         // Add auth change listener.
         mAuth.addAuthStateListener(mAuthStateListener);
 
+        // Update UI depending whether or not user is admin.
+        verifyIsAdmin();
     }
 
     @Override
@@ -171,12 +179,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateUI(FirebaseUser currentUser) {
-        String message = (currentUser == null ? "FirebaseUser is null" : currentUser.getEmail());
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this);
-        message = (googleSignInAccount == null ? "Google account is null" : googleSignInAccount.getDisplayName());
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    private void updateUI(boolean isAdmin) {
+        int visibility =
+                isAdmin ? View.VISIBLE : View.GONE;
+        findViewById(R.id.persons_button).setVisibility(visibility);
+        findViewById(R.id.pending_accounts_button).setVisibility(visibility);
+        findViewById(R.id.approvals_button).setVisibility(visibility);
+
+    }
+
+    private boolean verifyIsAdmin() {
+        String userId = Helpers.getLoggedInFirebaseUser();
+        if(userId != null) {
+            FirebaseFirestore.getInstance()
+                    .collection("persons")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if(documentSnapshot != null && documentSnapshot.exists()) {
+                                Person person = documentSnapshot.toObject(Person.class);
+                                updateUI(person.isAdmin());
+                            }
+                        }
+                    });
+        }
     }
 
 

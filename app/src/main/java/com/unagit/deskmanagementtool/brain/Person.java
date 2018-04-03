@@ -13,12 +13,15 @@ import java.util.Date;
 public class Person {
     private String name;
     private String email;
+    private boolean admin;
 
     @ServerTimestamp
     private Date timestamp;
 
     @Exclude
     private String id;
+
+
 
     public Person() {}
 
@@ -40,5 +43,9 @@ public class Person {
 
     public Date getTimestamp() {
         return timestamp;
+    }
+
+    public boolean isAdmin() {
+        return admin;
     }
 }
