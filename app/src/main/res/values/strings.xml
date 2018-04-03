@@ -22,4 +22,6 @@
     <string name="approval_status_label">Approval status</string>
     <string name="timestamp_label">Last modified</string>
     <string name="approve_absence_button">Approve</string>
+    <string name="account_pending_verification">Your account is being verified. Once done, you\'ll get access to the tool.</string>
+    <string name="exit_button_label">Exit</string>
 </resources>

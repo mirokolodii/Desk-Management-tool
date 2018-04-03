@@ -51,7 +51,8 @@
         </activity>
         <activity android:name=".activities.PendingApprovalsActivity" />
         <activity android:name=".activities.NewAccountsActivity" />
-        <activity android:name=".activities.PersonsActivity"></activity>
+        <activity android:name=".activities.PersonsActivity" />
+        <activity android:name=".activities.AccountPendingVerificationActivity"></activity>
     </application>
 
 </manifest>
