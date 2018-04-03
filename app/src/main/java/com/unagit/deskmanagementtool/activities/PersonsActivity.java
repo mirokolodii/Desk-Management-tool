@@ -1,5 +1,6 @@
 package com.unagit.deskmanagementtool.activities;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.unagit.deskmanagementtool.Helpers;
 import com.unagit.deskmanagementtool.R;
+import com.unagit.deskmanagementtool.brain.Absence;
 import com.unagit.deskmanagementtool.brain.Person;
 
 import org.w3c.dom.Text;
@@ -107,8 +109,16 @@ public class PersonsActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull PersonViewHolder holder, int position) {
-            holder.name.setText(persons.get(position).getName());
-
+            final Person person = persons.get(position);
+            holder.name.setText(person.getName());
+            holder.name.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(PersonsActivity.this, AbsencesActivity.class);
+                    intent.putExtra(Absence.EXTRA_USER_ID, person.withId());
+                    startActivity(intent);
+                }
+            });
         }
     }
 
