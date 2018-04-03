@@ -31,6 +31,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * This class is responsible for showing a list of absences, which require approval.
+ * It's possible to approve absence from the view by clicking on 'approve' button.
+ * Once approved, list will be updated (approved absence will be removed from it).
+ */
 public class PendingApprovalsActivity extends AppCompatActivity {
 
     // Firestore userId.
@@ -51,6 +56,8 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         if (isLoggedInUser()) {
            prepareRecycleView();
            enableListeningForAdapter(true);
+        } else {
+            launchSignInActivity();
         }
     }
 
@@ -62,19 +69,21 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
 
     /**
-     *  Verifies that user is logged in and save user ID.
+     *  Verifies that user is logged into the Firebase.
+     *  Saves user ID.
      */
     private boolean isLoggedInUser() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if(user == null) {
-            // Redirect to login activity.
-            launchSignInActivity();
             return false;
         }
         mUserId = user.getUid();
         return true;
     }
 
+    /**
+     * In case user is not logged in, redirect to SignInActivity.
+     */
     private void launchSignInActivity() {
         Intent signInActivityIntent = new Intent(this, SignInActivity.class);
         signInActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -96,6 +105,12 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Prepares RecycleView to work with data from Firestore.
+     * Includes two classes:
+     * - AbsenceHolder, which binds view to java objects.
+     * - FirestoreRecycleAdapter, which shows items, sets onClicksListeners etc.
+     */
     private void prepareRecycleView() {
         // RecycleView
         RecyclerView mRecyclerView = findViewById(R.id.pending_approval_absences_recycle_view);
@@ -167,7 +182,6 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                         approveAbsence(model);
                     }
                 });
-
             }
 
             @Override
@@ -197,6 +211,11 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                 return datesString;
             }
 
+            /**
+             * Returns true, if it's an one-day absence.
+             * @param model absence.
+             * @return
+             */
             private boolean oneDayAbsence(Absence model) {
                 long startDays = model.getStartDate() / (24 * 60 * 60 * 1000);
                 long endDays = model.getEndDate() / (24 * 60 * 60 * 1000);
@@ -213,7 +232,5 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
         // Set adapter for RecycleView
         mRecyclerView.setAdapter(adapter);
-
     }
-
 }
