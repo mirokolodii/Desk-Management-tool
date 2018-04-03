@@ -142,4 +142,9 @@ public class Absence implements Serializable {
 //
 //    public void setId(String id) { this.id = id; }
 
+    public void approve() {
+        approved = true;
+        approvalStatus = APPROVED_LABEL;
+    }
+
 }
