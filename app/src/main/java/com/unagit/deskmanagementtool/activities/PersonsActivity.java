@@ -1,5 +1,7 @@
 package com.unagit.deskmanagementtool.activities;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -7,9 +9,14 @@ import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -35,6 +42,11 @@ public class PersonsActivity extends AppCompatActivity {
 
     // Array of persons from Firestore.
     private ArrayList<Person> persons = new ArrayList<>();
+
+    // Adapter for RecycleView.
+    PersonsAdapter mAdapter;
+
+    MyFilter myFilter = new MyFilter();
 
     //TAG
     private final String TAG = this.getClass().getSimpleName();
@@ -62,6 +74,37 @@ public class PersonsActivity extends AppCompatActivity {
         super.onStop();
     }
 
+    // Add menu into activity
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_persons_menu, menu);
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.searchView)
+                .getActionView();
+        searchView.setSearchableInfo(searchManager
+                .getSearchableInfo(getComponentName()));
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                myFilter.filter(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                myFilter.filter(newText);
+                return true;
+            }
+        });
+
+        return true;
+    }
+
     private void prepareRecycleView() {
         // RecycleView
         RecyclerView recyclerView = findViewById(R.id.persons_recycle_view);
@@ -81,13 +124,16 @@ public class PersonsActivity extends AppCompatActivity {
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         // Set adapter.
-        PersonsAdapter adapter = new PersonsAdapter();
-        recyclerView.setAdapter(adapter);
+        mAdapter = new PersonsAdapter(persons);
+        recyclerView.setAdapter(mAdapter);
     }
 
 
     class PersonsAdapter extends RecyclerView.Adapter<PersonsAdapter.PersonViewHolder> {
-
+        ArrayList<Person> filteredPersons;
+        PersonsAdapter(ArrayList<Person> filteredPersons) {
+            this.filteredPersons = filteredPersons;
+        }
         class PersonViewHolder extends RecyclerView.ViewHolder {
             TextView name;
             PersonViewHolder(View view) {
@@ -96,9 +142,14 @@ public class PersonsActivity extends AppCompatActivity {
             }
         }
 
+        void setList(ArrayList<Person> filteredPersons) {
+            this.filteredPersons = filteredPersons;
+        }
+
         @Override
         public int getItemCount() {
-            return persons.size();
+//            return persons.size();
+            return filteredPersons.size();
         }
 
         @NonNull
@@ -109,7 +160,8 @@ public class PersonsActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull PersonViewHolder holder, int position) {
-            final Person person = persons.get(position);
+//            final Person person = persons.get(position);
+            final Person person = filteredPersons.get(position);
             holder.name.setText(person.getName());
             holder.name.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -141,8 +193,38 @@ public class PersonsActivity extends AppCompatActivity {
                                 persons.add(person);
                             }
                         }
+                        mAdapter.notifyDataSetChanged();
                     }
                 });
+    }
+
+    class MyFilter extends Filter{
+        @Override
+        protected FilterResults performFiltering(CharSequence charSequence) {
+            ArrayList<Person> filteredPersons = new ArrayList<>();
+            String query = charSequence.toString().trim();
+            if(query.isEmpty()) {
+                filteredPersons = persons;
+            } else {
+                for(Person person : persons) {
+                    if(person.getName().toLowerCase().contains(query.toLowerCase())) {
+                        filteredPersons.add(person);
+                    }
+                }
+            }
+
+            FilterResults filterResults = new FilterResults();
+            filterResults.values = filteredPersons;
+            return filterResults;
+
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+            ArrayList<Person> filteredPersons = (ArrayList<Person>) filterResults.values;
+            mAdapter.setList(filteredPersons);
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
 }

@@ -24,4 +24,5 @@
     <string name="approve_absence_button">Approve</string>
     <string name="account_pending_verification">Your account is being verified. Once done, you\'ll get access to the tool.</string>
     <string name="exit_button_label">Exit</string>
+    <string name="search_hint">Search for name</string>
 </resources>
