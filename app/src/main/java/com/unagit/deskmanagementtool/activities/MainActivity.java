@@ -100,7 +100,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.persons_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Helpers.launchActivity(MainActivity.this, PersonsActivity.class);
+            }
+        });
+
+        findViewById(R.id.approvals_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Helpers.launchActivity(MainActivity.this, AccountPendingVerificationActivity.class);
+            }
+        });
+
+        findViewById(R.id.pending_accounts_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Helpers.launchActivity(MainActivity.this, PendingApprovalsActivity.class);
+            }
+        });
     }
+
 
     // Add menu into activity
     @Override

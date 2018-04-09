@@ -74,36 +74,36 @@ public class PersonsActivity extends AppCompatActivity {
         super.onStop();
     }
 
-    // Add menu into activity
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.activity_persons_menu, menu);
-
-        // Associate searchable configuration with the SearchView
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.searchView)
-                .getActionView();
-        searchView.setSearchableInfo(searchManager
-                .getSearchableInfo(getComponentName()));
-        searchView.setMaxWidth(Integer.MAX_VALUE);
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                myFilter.filter(query);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                myFilter.filter(newText);
-                return true;
-            }
-        });
-
-        return true;
-    }
+//    // Add menu into activity
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.activity_persons_menu, menu);
+//
+//        // Associate searchable configuration with the SearchView
+//        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//        SearchView searchView = (SearchView) menu.findItem(R.id.searchView)
+//                .getActionView();
+//        searchView.setSearchableInfo(searchManager
+//                .getSearchableInfo(getComponentName()));
+//        searchView.setMaxWidth(Integer.MAX_VALUE);
+//
+//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//            @Override
+//            public boolean onQueryTextSubmit(String query) {
+//                myFilter.filter(query);
+//                return true;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String newText) {
+//                myFilter.filter(newText);
+//                return true;
+//            }
+//        });
+//
+//        return true;
+//    }
 
     private void prepareRecycleView() {
         // RecycleView
