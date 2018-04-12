@@ -110,14 +110,14 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.approvals_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Helpers.launchActivity(MainActivity.this, AccountPendingVerificationActivity.class);
+                Helpers.launchActivity(MainActivity.this, PendingApprovalsActivity.class);
             }
         });
 
         findViewById(R.id.pending_accounts_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Helpers.launchActivity(MainActivity.this, PendingApprovalsActivity.class);
+                Helpers.launchActivity(MainActivity.this, AccountPendingVerificationActivity.class);
             }
         });
     }

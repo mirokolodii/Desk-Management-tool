@@ -13,17 +13,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.firebase.ui.firestore.SnapshotParser;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.unagit.deskmanagementtool.Helpers;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
 
@@ -43,20 +48,27 @@ public class PendingApprovalsActivity extends AppCompatActivity {
     // Adapter for FirestoreUI RecycleView.
     private FirestoreRecyclerAdapter adapter;
 
+    final String TAG = this.getClass().getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pending_approvals);
 
+
     }
 
     @Override
     protected void onStart() {
+//        Log.d(TAG, "Enter onStart");
         super.onStart();
         if (isLoggedInUser()) {
+//            Log.d(TAG, "User is logged in");
+            testQuery();
            prepareRecycleView();
            enableListeningForAdapter(true);
         } else {
+//            Log.d(TAG, "User is not logged in");
             launchSignInActivity();
         }
     }
@@ -105,6 +117,33 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         }
     }
 
+    private void testQuery() {
+        // Query for Firestore.
+
+        Query absencesForUserQuery = FirebaseFirestore.getInstance()
+                .collection("absences")
+                .whereEqualTo("requiredApproval", true)
+                .whereEqualTo("approved", false)
+                .orderBy("timestamp", Query.Direction.ASCENDING);
+        absencesForUserQuery.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot documentSnapshots) {
+                        Log.d(TAG, "Data received from Firestore");
+                        for(DocumentSnapshot document : documentSnapshots) {
+                            Log.d(TAG, document.getId() + " => " + document.getData());
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, "Failed to receive data from Firestore");
+                        Log.d(TAG, e.getMessage());
+                    }
+                });
+    }
+
     /**
      * Prepares RecycleView to work with data from Firestore.
      * Includes two classes:
@@ -133,9 +172,10 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         // Query for Firestore.
         Query absencesForUserQuery = FirebaseFirestore.getInstance()
                 .collection("absences")
-                .whereEqualTo("isRequiredApproval", true)
-                .whereEqualTo("isApproved", false)
+                .whereEqualTo("requiredApproval", true)
+                .whereEqualTo("approved", false)
                 .orderBy("timestamp", Query.Direction.ASCENDING);
+
 
         // Configure recycler adapter options:
         //  * query is the Query object defined above.
@@ -163,7 +203,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
                 type = v.findViewById(R.id.type_recycle_view_single_item_textView);
                 dates = v.findViewById(R.id.dates_recycle_view_single_item_textView);
-                approveButton = v.findViewById(R.id.approval_status_recycle_view_single_item_textView);
+                approveButton = v.findViewById(R.id.approve_absence_button);
             }
         }
 
@@ -180,6 +220,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         approveAbsence(model);
+                        Log.d(TAG, "Approve button pressed");
                     }
                 });
             }
@@ -225,7 +266,8 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             private void approveAbsence(Absence absence) {
                 absence.approve();
                 DocumentReference docRef = FirebaseFirestore.getInstance()
-                        .document("absences");
+                        .collection("absences")
+                        .document(absence.id);
                 docRef.set(absence, SetOptions.merge());
             }
         };
