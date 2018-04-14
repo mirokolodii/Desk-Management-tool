@@ -11,9 +11,9 @@
         android:theme="@style/AppTheme">
         <activity android:name=".activities.MainActivity">
             <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
+            <!--<action android:name="android.intent.action.MAIN" />-->
 
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--<category android:name="android.intent.category.LAUNCHER" />-->
             <!--</intent-filter>-->
         </activity>
         <activity
@@ -49,21 +49,25 @@
             <!-- </intent-filter> -->
 
         </activity>
-        <activity android:name=".activities.PendingApprovalsActivity" >
-             <intent-filter>
-             <action android:name="android.intent.action.MAIN" />
+        <activity android:name=".activities.PendingApprovalsActivity">
+            <!--<intent-filter>-->
+            <!--<action android:name="android.intent.action.MAIN" />-->
 
 
-             <category android:name="android.intent.category.LAUNCHER" />
-             </intent-filter>
+            <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
         </activity>
         <activity android:name=".activities.NewAccountsActivity" />
         <activity android:name=".activities.PersonsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
         <activity android:name=".activities.AccountPendingVerificationActivity"></activity>
     </application>

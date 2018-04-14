@@ -11,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -62,6 +63,7 @@ public class PersonsActivity extends AppCompatActivity {
         super.onStart();
         mUserId = Helpers.getLoggedInFirebaseUser();
         if (mUserId != null) {
+            persons.clear();
             prepareRecycleView();
             getPersons();
         } else {
@@ -139,7 +141,7 @@ public class PersonsActivity extends AppCompatActivity {
             TextView name;
             PersonViewHolder(View view) {
                 super(view);
-                name = (TextView) view;
+                name = view.findViewById(R.id.user_name);
             }
         }
 
@@ -156,7 +158,9 @@ public class PersonsActivity extends AppCompatActivity {
         @NonNull
         @Override
         public PersonViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new PersonViewHolder(new TextView(parent.getContext()));
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.content_persons_recycle_view_item, parent, false);
+            return new PersonViewHolder(view);
         }
 
         @Override
@@ -167,6 +171,7 @@ public class PersonsActivity extends AppCompatActivity {
             holder.name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+//                    Log.d(TAG, "person's TextView clicked. Uid: " + person.withId());
                     Intent intent = new Intent(PersonsActivity.this, AbsencesActivity.class);
                     intent.putExtra(Absence.EXTRA_USER_ID, person.withId());
                     startActivity(intent);
