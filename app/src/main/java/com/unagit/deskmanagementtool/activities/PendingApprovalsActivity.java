@@ -2,6 +2,7 @@ package com.unagit.deskmanagementtool.activities;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
@@ -31,9 +32,11 @@ import com.google.firebase.firestore.SetOptions;
 import com.unagit.deskmanagementtool.Helpers;
 import com.unagit.deskmanagementtool.R;
 import com.unagit.deskmanagementtool.brain.Absence;
+import com.unagit.deskmanagementtool.brain.Person;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
 
 /**
@@ -47,6 +50,8 @@ public class PendingApprovalsActivity extends AppCompatActivity {
     private String mUserId;
     // Adapter for FirestoreUI RecycleView.
     private FirestoreRecyclerAdapter adapter;
+    private FirebaseFirestore db;
+    private HashSet<Person> mPersons = new HashSet<>();
 
     final String TAG = this.getClass().getSimpleName();
 
@@ -65,8 +70,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         if (isLoggedInUser()) {
 //            Log.d(TAG, "User is logged in");
             testQuery();
-           prepareRecycleView();
-           enableListeningForAdapter(true);
+            getPersons();
         } else {
 //            Log.d(TAG, "User is not logged in");
             launchSignInActivity();
@@ -81,12 +85,12 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
 
     /**
-     *  Verifies that user is logged into the Firebase.
-     *  Saves user ID.
+     * Verifies that user is logged into the Firebase.
+     * Saves user ID.
      */
     private boolean isLoggedInUser() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user == null) {
+        if (user == null) {
             return false;
         }
         mUserId = user.getUid();
@@ -105,11 +109,12 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
     /**
      * Changes listening state of adapter.
+     *
      * @param enable if true - start listening, otherwise - stop listening.
      */
     private void enableListeningForAdapter(boolean enable) {
-        if(adapter != null) {
-            if(enable) {
+        if (adapter != null) {
+            if (enable) {
                 adapter.startListening();
             } else {
                 adapter.stopListening();
@@ -130,7 +135,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(QuerySnapshot documentSnapshots) {
                         Log.d(TAG, "Data received from Firestore");
-                        for(DocumentSnapshot document : documentSnapshots) {
+                        for (DocumentSnapshot document : documentSnapshots) {
                             Log.d(TAG, document.getId() + " => " + document.getData());
                         }
                     }
@@ -197,6 +202,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             TextView type;
             TextView dates;
             Button approveButton;
+            TextView userName;
 
             AbsenceHolder(View v) {
                 super(v);
@@ -204,6 +210,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                 type = v.findViewById(R.id.type_recycle_view_single_item_textView);
                 dates = v.findViewById(R.id.dates_recycle_view_single_item_textView);
                 approveButton = v.findViewById(R.id.approve_absence_button);
+                userName = v.findViewById(R.id.user_name);
             }
         }
 
@@ -212,10 +219,21 @@ public class PendingApprovalsActivity extends AppCompatActivity {
             @Override
             public void onBindViewHolder(AbsenceHolder holder, int position, final Absence model) {
                 Log.d("AbsencesActivity", "onBindViewHolder triggered with " + model.getType());
-                // Bind the Chat object to the ChatHolder
+
                 holder.type.setText(model.getType());
                 holder.dates.setText(getDatesString(model));
 
+                // Set username.
+                Person person = getPersonWithId(model.getUserId());
+                String name;
+                if(person != null) {
+                    name = person.getName();
+                } else {
+                    name = "unknown user";
+                }
+                holder.userName.setText(name);
+
+                // Approve button.
                 holder.approveButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -246,7 +264,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
                 SimpleDateFormat format = new SimpleDateFormat("EEE, MMMM dd", Locale.getDefault()); /* Tue, Jan 12 */
                 String datesString = format.format(start);
-                if(!oneDayAbsence(model)) {
+                if (!oneDayAbsence(model)) {
                     datesString += " - " + format.format(end);
                 }
                 return datesString;
@@ -274,5 +292,43 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
         // Set adapter for RecycleView
         mRecyclerView.setAdapter(adapter);
+    }
+
+    @Nullable
+    private Person getPersonWithId(String id) {
+        for (Person person : mPersons) {
+            if (person.withId().equals(id)) {
+                return person;
+            }
+        }
+        return null;
+    }
+
+    // Get all persons form Firestore.
+    private void getPersons() {
+        db.collection("persons").get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot documentSnapshots) {
+                        // Add persons into class array field.
+                        for (DocumentSnapshot documentSnapshot : documentSnapshots) {
+                            Person person = documentSnapshot.toObject(Person.class);
+                            person.setId(documentSnapshot.getId());
+                            mPersons.add(person);
+                        }
+                        /*
+                        We have persons now.
+                        Next is to show data in RecycleView and enable listening for changes in db.
+                         */
+                        prepareRecycleView();
+                        enableListeningForAdapter(true);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                });
     }
 }

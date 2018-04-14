@@ -88,27 +88,14 @@ public class ScheduleActivity extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot documentSnapshots) {
-//                        persons = documentSnapshots.toObjects(Person.class);
-//                        Log.d(TAG, "Query: " + documentSnapshots.getDocuments().toString());
-//                        Log.d(TAG, "Documents: " + documentSnapshots.getDocuments().toString());
-//                        Log.d(TAG, "List: " + persons.toString());
-
                         // Add persons into class array field.
                         for (DocumentSnapshot documentSnapshot : documentSnapshots) {
                             Person person = documentSnapshot.toObject(Person.class);
                             person.setId(documentSnapshot.getId());
                             mPersons.add(person);
-
                         }
-
-                        // Debug.
-//                        for (Person person : mPersons) {
-//                            Log.d(TAG, String.format("Name: %s; id: %s", person.getName(), person.withId()));
-//                        }
-
                         // We have persons now. Now we need absences.
                         getAbsences();
-
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -275,53 +262,6 @@ public class ScheduleActivity extends AppCompatActivity {
     private boolean isAbsenceInDate(Absence absence, DateTime date) {
         Log.d(TAG, String.format("Absence: %s. Date: %d, absence.start: %d, absence.end: %d", absence.getType(), date.getMillis(), absence.getStartDate(), absence.getEndDate()));
         return !date.plusDays(1).isBefore(absence.getStartDate()) && !date.isAfter(absence.getEndDate());
-    }
-
-
-    /**
-     * Gets example absences.
-     * @return Array of absences.
-     */
-    private HashSet<Absence> getAbsences2() {
-        HashSet<Absence> absences = new HashSet<>();
-        Absence ab1 = new Absence(
-                "Vacation",
-                (new DateTime(2018, 2,14, 0, 0)).getMillis(),
-                (new DateTime(2018, 2,17, 0, 0)).getMillis(),
-                null,
-                false,
-                "sdfdsf"
-        );
-        ab1.id = "123";
-
-        Absence ab2 = new Absence(
-                "Training",
-                (new DateTime(2018, 2,16, 0, 0)).getMillis(),
-                (new DateTime(2018, 2,19, 0, 0)).getMillis(),
-                null,
-                false,
-                "jlvHsE9D5bbn1BMhbBrarMxhSsy2"
-        );
-        ab2.id = "123";
-
-
-        Absence ab3 = new Absence(
-                "Training",
-                (new DateTime(2018, 2,16, 0, 0)).getMillis(),
-                (new DateTime(2018, 2,19, 0, 0)).getMillis(),
-                null,
-                false,
-                "jlvHsE9D5bbn1BMhbBrarMxhSsy2"
-        );
-        ab3.id = "1234";
-
-        absences.add(ab1);
-        absences.add(ab2);
-        absences.add(ab3);
-
-//        Log.d(TAG, "absences size: " + String.valueOf(absences.size()));
-
-        return absences;
     }
 
     @Nullable
