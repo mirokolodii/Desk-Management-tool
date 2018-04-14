@@ -47,7 +47,7 @@ import java.util.Locale;
 public class PendingApprovalsActivity extends AppCompatActivity {
 
     // Firestore userId.
-    private String mUserId;
+//    private String mUserId;
     // Adapter for FirestoreUI RecycleView.
     private FirestoreRecyclerAdapter adapter;
     private FirebaseFirestore db;
@@ -60,6 +60,8 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pending_approvals);
 
+        db = FirebaseFirestore.getInstance();
+
 
     }
 
@@ -69,7 +71,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         super.onStart();
         if (isLoggedInUser()) {
 //            Log.d(TAG, "User is logged in");
-            testQuery();
+//            testQuery();
             getPersons();
         } else {
 //            Log.d(TAG, "User is not logged in");
@@ -93,7 +95,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         if (user == null) {
             return false;
         }
-        mUserId = user.getUid();
+//        mUserId = user.getUid();
         return true;
     }
 
@@ -122,32 +124,32 @@ public class PendingApprovalsActivity extends AppCompatActivity {
         }
     }
 
-    private void testQuery() {
-        // Query for Firestore.
-
-        Query absencesForUserQuery = FirebaseFirestore.getInstance()
-                .collection("absences")
-                .whereEqualTo("requiredApproval", true)
-                .whereEqualTo("approved", false)
-                .orderBy("timestamp", Query.Direction.ASCENDING);
-        absencesForUserQuery.get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot documentSnapshots) {
-                        Log.d(TAG, "Data received from Firestore");
-                        for (DocumentSnapshot document : documentSnapshots) {
-                            Log.d(TAG, document.getId() + " => " + document.getData());
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "Failed to receive data from Firestore");
-                        Log.d(TAG, e.getMessage());
-                    }
-                });
-    }
+//    private void testQuery() {
+//        // Query for Firestore.
+//
+//        Query absencesForUserQuery = FirebaseFirestore.getInstance()
+//                .collection("absences")
+//                .whereEqualTo("requiredApproval", true)
+//                .whereEqualTo("approved", false)
+//                .orderBy("timestamp", Query.Direction.ASCENDING);
+//        absencesForUserQuery.get()
+//                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onSuccess(QuerySnapshot documentSnapshots) {
+//                        Log.d(TAG, "Data received from Firestore");
+//                        for (DocumentSnapshot document : documentSnapshots) {
+//                            Log.d(TAG, document.getId() + " => " + document.getData());
+//                        }
+//                    }
+//                })
+//                .addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//                        Log.d(TAG, "Failed to receive data from Firestore");
+//                        Log.d(TAG, e.getMessage());
+//                    }
+//                });
+//    }
 
     /**
      * Prepares RecycleView to work with data from Firestore.
@@ -175,7 +177,7 @@ public class PendingApprovalsActivity extends AppCompatActivity {
 
 
         // Query for Firestore.
-        Query absencesForUserQuery = FirebaseFirestore.getInstance()
+        Query absencesForUserQuery = db
                 .collection("absences")
                 .whereEqualTo("requiredApproval", true)
                 .whereEqualTo("approved", false)
@@ -286,7 +288,20 @@ public class PendingApprovalsActivity extends AppCompatActivity {
                 DocumentReference docRef = FirebaseFirestore.getInstance()
                         .collection("absences")
                         .document(absence.id);
-                docRef.set(absence, SetOptions.merge());
+                docRef
+                        .set(absence, SetOptions.merge())
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Log.d(TAG, "Absence saved.");
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.d(TAG, e.getMessage());
+                            }
+                        });
             }
         };
 

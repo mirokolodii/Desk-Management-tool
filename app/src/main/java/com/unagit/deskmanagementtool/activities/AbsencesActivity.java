@@ -34,6 +34,7 @@ public class AbsencesActivity extends AppCompatActivity {
     private FirestoreRecyclerAdapter adapter;
     private final static String APPROVED_STATUS = "Approved";
     private final static String PENDING_APPROVAL_STATUS = "Pending Approval";
+    private final String TAG = this.getClass().getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +47,9 @@ public class AbsencesActivity extends AppCompatActivity {
         addAbsenceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent absenceIntent = new Intent(AbsencesActivity.this, AddAbsenceActivity.class);
-                startActivity(absenceIntent);
+                Intent intent = new Intent(AbsencesActivity.this, AddAbsenceActivity.class);
+                intent.putExtra(Absence.EXTRA_USER_ID, mUserId);
+                startActivity(intent);
             }
         });
 
@@ -85,6 +87,7 @@ public class AbsencesActivity extends AppCompatActivity {
         // Firstly, try to get user ID from intent.
         String uid = getIntent().getStringExtra(Absence.EXTRA_USER_ID);
         if(uid == null) {
+            Log.d(TAG, "Can't get user id from intent.");
             // Secondly, check if user is signed in.
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if(user == null) {
@@ -94,9 +97,11 @@ public class AbsencesActivity extends AppCompatActivity {
                 return false;
 
             } else {
+
                 uid = user.getUid();
             }
         }
+        Log.d(TAG, "Get user id from intent. Uid: " + uid);
         mUserId  = uid;
         return true;
     }

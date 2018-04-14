@@ -13,7 +13,7 @@ public class Helpers {
 
     public static void launchActivity(Context context, Class<?> cls) {
         Intent signInActivityIntent = new Intent(context, cls);
-        signInActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        signInActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(signInActivityIntent);
     }
 

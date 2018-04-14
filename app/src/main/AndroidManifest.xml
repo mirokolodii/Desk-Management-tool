@@ -10,11 +10,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".activities.MainActivity">
-            <!--<intent-filter>-->
-            <!--<action android:name="android.intent.action.MAIN" />-->
+            <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
 
-            <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
+            <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".activities.SignInActivity"
@@ -35,11 +35,14 @@
             android:name=".activities.AddAbsenceActivity"
             android:label="@string/title_activity_add_absence"
             android:parentActivityName=".activities.AbsencesActivity" />
+
         <activity
             android:name=".activities.ShowAbsenceActivity"
             android:label="@string/title_activity_show_absence"
             android:parentActivityName=".activities.AbsencesActivity" />
-        <activity android:name=".activities.ScheduleActivity">
+
+        <activity android:name=".activities.ScheduleActivity"
+            android:parentActivityName=".activities.AbsencesActivity" >
 
             <!-- <intent-filter> -->
             <!-- <action android:name="android.intent.action.MAIN" /> -->
@@ -49,7 +52,8 @@
             <!-- </intent-filter> -->
 
         </activity>
-        <activity android:name=".activities.PendingApprovalsActivity">
+        <activity android:name=".activities.PendingApprovalsActivity"
+            android:parentActivityName=".activities.AbsencesActivity" >
             <!--<intent-filter>-->
             <!--<action android:name="android.intent.action.MAIN" />-->
 
@@ -57,19 +61,22 @@
             <!--<category android:name="android.intent.category.LAUNCHER" />-->
             <!--</intent-filter>-->
         </activity>
-        <activity android:name=".activities.NewAccountsActivity" />
-        <activity android:name=".activities.PersonsActivity">
+        <activity android:name=".activities.NewAccountsActivity"
+            android:parentActivityName=".activities.AbsencesActivity" />
+        <activity android:name=".activities.PersonsActivity"
+            android:parentActivityName=".activities.MainActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
-                <action android:name="android.intent.action.MAIN" />
+                <!--<action android:name="android.intent.action.MAIN" />-->
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
             </intent-filter>
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
-        <activity android:name=".activities.AccountPendingVerificationActivity"></activity>
+        <activity android:name=".activities.AccountPendingVerificationActivity"
+            android:parentActivityName=".activities.AbsencesActivity" />
     </application>
 
 </manifest>

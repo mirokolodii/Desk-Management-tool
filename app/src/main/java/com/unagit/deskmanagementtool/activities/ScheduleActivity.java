@@ -336,7 +336,11 @@ public class ScheduleActivity extends AppCompatActivity {
                 text += absence.getType();
                 TextView textView = new TextView(ScheduleActivity.this);
                 textView.setText(text);
-                holder.absencesLayout.addView(textView);
+                holder.absencesLayout.addView(
+                        textView,
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
             }
 
         }

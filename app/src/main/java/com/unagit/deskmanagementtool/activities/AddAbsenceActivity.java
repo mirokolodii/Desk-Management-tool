@@ -102,13 +102,10 @@ public class AddAbsenceActivity extends AppCompatActivity implements DatePickerD
     private void getIntentData() {
 //        Absence absence = (Absence) getIntent().getSerializableExtra(EXTRA_ABSENCE);
         mAbsence = (Absence) this.getIntent().getSerializableExtra(Absence.EXTRA_SERIALIZABLE_OBJECT);
-        if(mAbsence != null) {
-//            Log.d(TAG, "Absence is not null");
-//            mAbsence = absence;
-            mUserId = mAbsence.getUserId();
+        String uid = getIntent().getStringExtra(Absence.EXTRA_USER_ID);
+        if(uid != null) {
+            mUserId = uid;
         } else {
-//            Log.d(TAG, "Absence is null");
-            // Check if user is signed in (non-null) and update UI accordingly.
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if(user == null) {
                 // Redirect to login activity.
